@@ -1,0 +1,6 @@
+id,type,name,status,description,epic
+null,EPIC,Переезд,NEW,Переезд
+318e4e29-d3c1-4c5e-9763-3d5e05ba20bd,TASK,Переезд,NEW,Собрать коробки
+628ed3c2-3bba-4a9d-b8b5-0776b8168ef9,SUBTASK,тест2,NEW,Упаковать кошку,null
+66ff8d7c-66a5-4732-bb30-15a4848d33c7,SUBTASK,тест1,NEW,Собрать коробки,null
+

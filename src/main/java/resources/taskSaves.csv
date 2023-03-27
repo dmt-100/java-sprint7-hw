@@ -1,0 +1,10 @@
+id,type,name,status,description,epic
+2090c8a3-b5cc-4698-b737-08251c4e579a,EPIC,Переезд1,NEW,Переезд1
+8e731380-da24-4345-b68b-058d7da8141e,TASK,Переезд,NEW,Упаковать кошку
+9d331fea-6229-4fa5-a3f3-81e54e5ed9be,TASK,Переезд,NEW,Собрать коробки
+26ab1a4f-7a31-45d7-86f6-48cbe4cb10d1,EPIC,Переезд2,NEW,Переезд2
+7733fcaf-2431-4122-a082-9bc69ac9e51a,TASK,Переезд,NEW,Сказать слова прощания
+ebb0a5d9-3d35-4f54-8cf5-6b34d85edd1a,TASK,Переезд,NEW,Собрать коробки
+5fcd2756-9d2d-43da-b673-43cecf0bbf17,TASK,Переезд,NEW,Упаковать кошку
+dc30a211-e6e7-4f5c-b9c4-e2c67fd65d83,EPIC,Переезд3,NEW,Переезд3
+
