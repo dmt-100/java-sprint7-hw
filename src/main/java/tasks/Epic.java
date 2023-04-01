@@ -3,6 +3,7 @@ package main.java.tasks;
 import main.java.service.Status;
 import main.java.service.TaskType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -12,14 +13,26 @@ public class Epic extends Task {
 Всем привет! а у вас у всех классы Task, Subtask и Epic не имеют ссылок друг на друга? Вчера жестко потратил 2ч на то что gson пытался сделать бесконечный паровозик из моих классов Subtask и Epic, так как у Epic есть массив Subtask'ов и у Subtask есть ссылка на Epic. Как я понял, gson пытался сериализовать Epic, в котором есть Subtask'и, а у него в свою очередь ссылка Epic, и тут начинается бесконечность ) только слово transient разорвало паровоз
  */
     private transient List<UUID> subtasks;
+    int duration;
+    private LocalDateTime endTime;
 
-    public Epic(TaskType taskType, String name, Status status, String description, List<UUID> subtasks) {
-        super(taskType, name, status, description);
+
+    public Epic(TaskType taskType,
+                String name,
+                String description,
+                Status status,
+                List<UUID> subtasks) {
+        super(taskType, name, description, status);
         this.subtasks = subtasks;
     }
 
-    public Epic(UUID id,  TaskType taskType, String name, Status status, String description, List<UUID> subtasks) {
-        super(id, taskType, name, status, description);
+    public Epic(UUID id,
+                TaskType taskType,
+                String name,
+                String description,
+                Status status,
+                List<UUID> subtasks) {
+        super(id, taskType, name, description, status);
         this.subtasks = subtasks;
     }
 
@@ -32,12 +45,33 @@ public class Epic extends Task {
         this.subtasks = subtasks;
     }
 
-    public void cleanSubtaskIds() {
+    public String cleanSubtaskIds() {
         subtasks.clear();
+        return "Список Эпика от подзадач очищен."; // ТЗ - 7
     }
     public void removeSubtask(UUID id) {
         subtasks.remove(subtasks.indexOf(id));
     }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    @Override
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    @Override
+    public int getDuration() {
+        return duration;
+    }
+
+    @Override
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -55,14 +89,28 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "Epic{" + "id=" + getId() + ", taskType=" + getTaskType() + ", name='" + getName()
-                + '\'' + ", description='" + getDescription() + '\'' + ", status='" + getStatus() + '\'' + ", subtasksList=" + subtasks + '}';
+        return "Epic{" + "id=" + getId() +
+                ", taskType=" + getTaskType() +
+                ", name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", status='" + getStatus() + '\'' +
+                ", startTime='" + getStartTime() + '\'' +
+                ", endTime='" + getEndTime() + '\'' +
+                ", duration='" + getDuration() + '\'' +
+                ", subtasksList=" + subtasks + '}';
     }
 
     @Override
     public String toCsvFormat() {
         String result;
-        result = getId() + "," + getTaskType() + "," + getName() + "," + getStatus() + "," + getDescription();
+        result = getId() + "," +
+                getTaskType() + "," +
+                getName() + "," +
+                getDescription() + "," +
+                getStatus() + "," +
+                getStartTime() + "," +
+                getEndTime() + "," +
+                getDuration();
         return result;
     }
 }

@@ -10,73 +10,74 @@ import main.java.tasks.Task;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
 
     private static final String sep = File.separator;
-    private static final String saveTasksFilePath = String.join(sep, "src", "main", "java", "saves", "taskSaves" + ".csv");
+    private static final String saveTasksFilePath = String.join(sep, "src", "main", "java", "resources", "taskSaves" + ".csv");
     private static File file = new File(saveTasksFilePath);
     private static String history;
 
 
     // +++++++++++++++++++++++++++++++++++++++ TEST BLOCK +++++++++++++++++++++++++++++++++++++++
-    public static void main(String[] args) throws IOException {
-
-//-файл в 1й менеджер должен передаваться пустой,
-        PrintWriter writer = new PrintWriter(file);
-        writer.print("");
-        writer.close();
-        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
-
-// - создать несколько задач, добавить из в менеджер, вызвать - что бы заполнилась история,
-
-        Task task1 = new Task(TaskType.TASK, "Переезд", Status.NEW, "Собрать коробки");
-        Epic epic1 = new Epic(TaskType.EPIC, "Переезд", Status.NEW, "Переезд", new ArrayList<>());
-        Subtask subtask1 = new Subtask(TaskType.SUBTASK, "тест1", Status.NEW, "Собрать коробки", epic1.getId());
-        Subtask subtask2 = new Subtask(TaskType.SUBTASK, "тест2", Status.NEW, "Упаковать кошку", epic1.getId());
-        fileBackedTasksManager.addNewTask(task1);
-        fileBackedTasksManager.addNewTask(epic1);
-        fileBackedTasksManager.addNewTask(subtask1);
-        fileBackedTasksManager.addNewTask(subtask2);
-
-        fileBackedTasksManager.getTaskById(task1.getId());
-        fileBackedTasksManager.getTaskById(epic1.getId());
-        fileBackedTasksManager.getTaskById(subtask1.getId());
-        fileBackedTasksManager.getTaskById(subtask2.getId());
-
-
-        System.out.println("вывод всех задач менеджера 1:");
-        fileBackedTasksManager.getTasks().values().forEach(System.out::println);
-        System.out.println();
-        fileBackedTasksManager.getHistory().forEach(task -> System.out.println(task));
-
-        fileBackedTasksManager.changeStatusTask(subtask1.getId(), Status.DONE);
-        fileBackedTasksManager.changeStatusTask(subtask2.getId(), Status.DONE);
-
-
-
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-        fileBackedTasksManager.getTasks().values().stream().forEach(t -> System.out.println(t));
-        System.out.println();
-        fileBackedTasksManager.getHistory().stream().forEach(task -> System.out.println(task));
-
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-        FileBackedTasksManager fileBackedTasksManager2 = loadFromFile(fileBackedTasksManager.file);
-        System.out.println("вывод всех задач менеджера 2:");
-        fileBackedTasksManager2.taskfromString().stream().forEach(System.out::println);
-        System.out.println("вывод истории просмотров менеджера 2:");
-        fileBackedTasksManager2.getHistoryTasks().stream().forEach(System.out::println); // если без стрима то пишет ошибку на println
-
-
-    }
+//    public static void main(String[] args) throws IOException {
+//
+////-файл в 1й менеджер должен передаваться пустой,
+//        PrintWriter writer = new PrintWriter(file);
+//        writer.print("");
+//        writer.close();
+//        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
+//
+//// - создать несколько задач, добавить из в менеджер, вызвать - что бы заполнилась история,
+//
+//        Task task1 = new Task(TaskType.TASK, "Переезд", Status.NEW, "Собрать коробки");
+//        fileBackedTasksManager.addNewTask(task1);
+//        Epic epic1 = new Epic(TaskType.EPIC, "Переезд", Status.NEW, "Переезд", new ArrayList<>());
+//        fileBackedTasksManager.addNewTask(epic1);
+//        Subtask subtask1 = new Subtask(TaskType.SUBTASK, "тест1", Status.NEW, "Собрать коробки", epic1.getId(), LocalDateTime.now(), 50);
+//        Subtask subtask2 = new Subtask(TaskType.SUBTASK, "тест2", Status.NEW, "Упаковать кошку", epic1.getId(), LocalDateTime.now(), 5);
+//        fileBackedTasksManager.addNewTask(subtask1);
+//        fileBackedTasksManager.addNewTask(subtask2);
+//
+//        fileBackedTasksManager.getTask(task1.getId());
+//        fileBackedTasksManager.getTask(epic1.getId());
+//        fileBackedTasksManager.getTask(subtask1.getId());
+//        fileBackedTasksManager.getTask(subtask2.getId());
+//
+//
+//        System.out.println("вывод всех задач менеджера 1:");
+//        fileBackedTasksManager.getTasks().values().forEach(System.out::println);
+//        System.out.println();
+//        fileBackedTasksManager.getHistory().forEach(task -> System.out.println(task));
+//
+//        fileBackedTasksManager.changeStatusTask(subtask1.getId(), Status.DONE);
+//        fileBackedTasksManager.changeStatusTask(subtask2.getId(), Status.DONE);
+//
+//
+//
+//        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//
+//        fileBackedTasksManager.getTasks().values().stream().forEach(t -> System.out.println(t));
+//        System.out.println();
+//        fileBackedTasksManager.getHistory().stream().forEach(task -> System.out.println(task));
+//
+//        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//
+//        FileBackedTasksManager fileBackedTasksManager2 = loadFromFile(fileBackedTasksManager.file);
+//        System.out.println("вывод всех задач менеджера 2:");
+//        fileBackedTasksManager2.taskfromString().stream().forEach(System.out::println);
+//        System.out.println("вывод истории просмотров менеджера 2:");
+//        fileBackedTasksManager2.getHistoryTasks().stream().forEach(System.out::println); // если без стрима то пишет ошибку на println
+//
+//
+//    }
     // +++++++++++++++++++++++++++++++++++++++ TEST BLOCK +++++++++++++++++++++++++++++++++++++++
 
     public FileBackedTasksManager(File file) {
-        this.file = file;
+        FileBackedTasksManager.file = file;
     }
 
     private static FileBackedTasksManager loadFromFile(File file) {
@@ -111,7 +112,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     private void save() {
         try (BufferedWriter out = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
-            out.write("id,type,name,status,description,epic\n");
+            out.write("id,type,name,description,status,startTime,endTime,duration,epic\n");
             for (Task task : getTasks().values()) {
                 out.write(task.toCsvFormat() + "\n");
             }
@@ -139,8 +140,10 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         UUID id;
         TaskType taskType;
         String name;
-        Status status;
         String description;
+        Status status;
+        LocalDateTime startTime = null;
+        int duration = 0;
         List<UUID> list = new ArrayList<>();
         UUID epicId = null;
 
@@ -164,15 +167,15 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     }
 
                     if (line.get(1).equals(TaskType.TASK.toString())) {
-                        task = new Task(id, taskType, name, status, description);
+                        task = new Task(id, taskType, name, description, status, startTime, duration);
                         tasks.add(task);
                     } else if (line.get(1).equals(TaskType.EPIC.toString())) {
-                        epic = new Epic(id, taskType, name, status, description, list);
+                        epic = new Epic(id, taskType, name, description, status, list);
                         epicList.add(epic);
                     }
 
                     if (line.get(1).equals(TaskType.SUBTASK.toString())) {
-                        subtask = new Subtask(id, taskType, name, status, description, epicId);
+                        subtask = new Subtask(id, taskType, name, description, status, epicId, startTime, duration);
                         tasks.add(subtask);
                         subtasksOfEpicField.put(id, epicId);
                     }
@@ -244,16 +247,18 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     // "модифицирующую операцию" как-то слишком завуалированно звучит тем более для студентов без опыта программирования не кажется?, им в ТЗ так и надо прописать "переопределить все методы которые меняют состояние менеджера: добавление, удаление, обновление, просмотр задач" чтоб и ежу было понятно
     //* так понимаю это все нужно для метода save(), чтоб каждый раз сохранял
     @Override
-    public void addNewTask(Task task) { // добавление
+    public UUID addNewTask(Task task) { // добавление
         super.addNewTask(task);
         save();
+        return task.getId();
     }
 
 
     @Override
-    public void getTaskById(UUID idInput) { // просмотр
-        super.getTaskById(idInput);
+    public Task getTask(UUID idInput) { // просмотр
+        super.getTask(idInput);
         save();
+        return null;
     }
 
     @Override
@@ -288,8 +293,8 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     @Override
-    public List<Task> getSubtaskList(UUID epicId) { // Получение списка всех подзадач определённого эпика
-        List <Task> subtasks = super.getSubtaskList(epicId);
+    public List<Task> getSubtasksFromEpic(UUID epicId) { // Получение списка всех подзадач определённого эпика
+        List <Task> subtasks = super.getSubtasksFromEpic(epicId);
         save();
         return subtasks;
     }
@@ -300,5 +305,20 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         save();
         return history;
     }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        List<Task> prioritizedTasks = super.getPrioritizedTasks();
+        save();
+        return prioritizedTasks;
+    }
+
+//    @Override
+//    public List<Task> sortByValue() {
+//        List<Task> result = super.sortByValue();
+//        save();
+//        return result;
+//    }
+
 
 }
