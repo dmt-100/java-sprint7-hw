@@ -8,49 +8,72 @@ import main.java.tasks.Epic;
 import main.java.tasks.Task;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final Map<UUID, Task> tasks = new HashMap<>();
+    private final Map<UUID, Task> tasks = new HashMap<>(); // переделать на treemap
+    private Set<Task> prioritizedTasks = new TreeSet<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
+    /*
+    Из условий в ТЗ-3: <Иногда для выполнения какой-нибудь масштабной задачи её лучше разбить на подзадачи (англ. subtask). Большую задачу, которая делится на подзадачи, мы будем называть эпиком (англ. epic).>
+    Не сказано что будет формироваться первыми эпик или подзадача, предложу что эпик первый, тогда стартовое время эпику устанавливается впоследсвии создания подзадачи
+     */
+
+    /* не совсем понятна логика в задании про окончание времени эпика, где сказано:
+     <а время завершения — время окончания самой поздней из задач.>, по идее время завершения должна быть сумма времени всех подзадач прибавленной к началу времени эпика или первой подзадачи, тем не менее сделал как написано в ТЗ
+    */
     @Override
-    public UUID addNewTask(Task task) {
-        task.setId(java.util.UUID.randomUUID()); // ТЗ-7 EpicTest после тестов снять (перезаписывает)
-        if (task.getTaskType().equals(TaskType.EPIC)) {
-            tasks.put(task.getId(), task);
-            System.out.println("Задача успешно добавлена");
-        } else { // временно из-за Назначения Id эпика
-            tasks.put(task.getId(), task);
-            if (task.getTaskType().equals(TaskType.SUBTASK)) {
-
-                Epic epic = (Epic) tasks.get(task.getEpicId()); // нашел решение только через кастинг
-
-/* не совсем понятна логика в задании про окончание времени эпика, где сказано:
- <а время завершения — время окончания самой поздней из задач.>, по идее время завершения должна быть сумма всех подзадач
- прибавленной к началу времени эпика или первой подзадачи, тем не менее сделал как написано в ТЗ
-*/
-                if (epic.getSubtasks().isEmpty()) { // если список подзадач у эпика пуст, то сразу устанавливаем
-                    epic.setStartTime(task.getStartTime()); // ТЗ-7 устанавливаем стартовое время для эпика
-                    epic.setDuration(task.getDuration());
-                } else { // иначе прибавляем время и продолжительность к уже установленному
-                    int duration;
-                    LocalDateTime endTime;
-                    duration = epic.getDuration() + task.getDuration();
-                    epic.setDuration(duration);// ТЗ-7 add duration to epic
-//                    endTime = epic.getStartTime().plusMinutes(epic.getDuration());
-                    endTime = task.getEndTime();
-                    epic.setEndTime(endTime); // ТЗ-7 epic set endTime
+    public void addNewTask(Task task) {
+        task.setId(java.util.UUID.randomUUID());
+        if (!tasks.isEmpty()) {
+            for (Task taskInMap : tasks.values()) {
+                if (!(taskInMap.getTaskType().equals(TaskType.EPIC) || task.getTaskType().equals(TaskType.EPIC))) {
+                    task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
+                    if (
+                            (taskInMap.getStartTime().isBefore(task.getStartTime())
+                                    && taskInMap.getEndTime().isAfter(task.getStartTime()))
+                                    || (taskInMap.getStartTime().isBefore(task.getEndTime()) //true
+                                    && taskInMap.getEndTime().isAfter(task.getEndTime()))
+                    ) {
+                        System.out.println("Пожалуйста выберете другое стартовое время");
+                        return;
+                    }
                 }
-
-                epic.getSubtasks().add(task.getId());
-                updateTask(epic);
             }
         }
-        return task.getId();
 
+        switch (task.getTaskType()) { // switch-case для удобства читаемости
+            case TASK:
+//                task.setId(java.util.UUID.randomUUID());
+//                task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
+                tasks.put(task.getId(), task);
+                System.out.println("Задача успешно добавлена");
+                break;
+            case EPIC:
+                task.setId(java.util.UUID.randomUUID());
+                tasks.put(task.getId(), task);
+                System.out.println("Эпик успешно добавлен");
+                break;
+            case SUBTASK:
+//                task.setId(java.util.UUID.randomUUID());
+//                task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
+                tasks.put(task.getId(), task);
+                System.out.println("Подзадача успешно добавлена");
+
+                Epic epic = (Epic) tasks.get(task.getEpicId()); // нашел решение только через кастинг
+                epic.setSubtasks(task.getId());
+                if (epic.getStartTime() == null) {
+                    epic.setStartTime(task.getStartTime());
+                }
+                epic.setDuration(epic.getDuration() + task.getDuration());
+                epic.setEndTime(epic.getStartTime().plusMinutes(epic.getDuration()));
+
+                updateTask(epic);
+        }
     }
 
     // case 2: Получение списка всех задач.-------------------------------------
@@ -59,7 +82,7 @@ public class InMemoryTaskManager implements TaskManager {
         List<Task> list = new ArrayList<>();
         if (!tasks.isEmpty()) {
             list = tasks.entrySet().stream().filter(t -> t.getValue()
-                    .getTaskType().equals(taskType))
+                            .getTaskType().equals(taskType))
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
 
@@ -75,11 +98,26 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeTasksByTasktype(TaskType taskType) {
         if (taskType.equals(TaskType.SUBTASK)) {
             tasks.values().stream().forEach(t -> t.getSubtasks().clear()); // удаление списка подзадач у Эпиков
+            tasks.values().stream().forEach(t -> historyManager.remove(t.getId())); // удаление подзадач в истории
+
+            LocalDateTime defaultTime = LocalDateTime.parse("2000-01-01 00:00:00",
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.US)); // 2014-12-22T05:10:30
+
+            tasks.values().stream() // обнуление времени у эпиков после удаления подзадач
+                    .filter(t -> t.getTaskType().equals(TaskType.EPIC))
+                    .forEach(t -> t.setStartTime(defaultTime));
+            tasks.values().stream()
+                    .filter(t -> t.getTaskType().equals(TaskType.EPIC))
+                    .forEach(t -> t.setEndTime(defaultTime));
+            tasks.values().stream()
+                    .filter(t -> t.getTaskType().equals(TaskType.EPIC))
+                    .forEach(t -> t.setDuration(0));
         }
         tasks.entrySet().removeIf(entry -> taskType.equals(entry.getValue().getTaskType()));
+
     }
 
-    // ТЗ-4
+    // ТЗ-4 Работает с History
     // case 4:get методы-------------------------------------------------------------
     @Override
     public Task getTask(UUID idInput) {
@@ -112,11 +150,18 @@ public class InMemoryTaskManager implements TaskManager {
     // case 6: Удалить по идентификатору. ----------------------------------------
     @Override
     public void removeTaskById(UUID id) {
+        Epic epic;
         try {
-
             if (tasks.get(id).getTaskType().equals(TaskType.EPIC)) {
-                for (Task subtask : getSubtasksFromEpic(id)) {
-                    tasks.remove(subtask.getId()); // удаление сабтасков епика из мапы
+                if (!tasks.get(id).getSubtasks().isEmpty()) {
+
+                    tasks.get(id).removeSubtask(id);
+                    tasks.get(id).cleanSubtaskIds();
+                    for (Task subtask : getSubtasksFromEpic(id)) {
+                        if (tasks.containsKey(subtask.getId())) {
+                            tasks.remove(subtask.getId()); // удаление сабтасков епика из мапы
+                        }
+                    }
                 }
             }
 
@@ -181,6 +226,10 @@ public class InMemoryTaskManager implements TaskManager {
         return subtasks;
     }
 
+    public void removeSubtasksFromEpic(UUID epicId) {
+
+    }
+
     // метод обновления статуса епика
     @Override
     public void updateEpicStatus(UUID id) {
@@ -238,61 +287,30 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getCustomLinkedList();
     }
 
+
+
+
+    // case 11:
+    public void prioritizeTasks() { // ТЗ-7 так как сет, то те задачи у которых одинаковое время будут перезаписываться, что бы этого избежать нужно чтобы стартовое время отличалось или просто вводить по одной задачи в мейне или заменить .now()
+        prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+        prioritizedTasks.addAll(Stream.of(tasks.values())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Set<Task> getPrioritizedTasks() {
+        prioritizeTasks();
+        return prioritizedTasks;
+    }
+
+
     public Map<UUID, Task> getTasks() {
         return tasks;
     }
 
-    // case 11:
-//    @Override
-//    public List<Task> getPrioritizedTasks() {
-//        List<Task> list = new ArrayList<>();
-////        Collections.checkedSortedMap()
-////
-////        return null;
-//        return list;
-//    }
-
-    // case 11:
-    public List<Task> getPrioritizedTasks() {
-        Set<Task> set = new TreeSet<>(Comparator.comparing(Task::getStartTime));
-        set.addAll(Stream.of(tasks.values())
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList()));
-        return new ArrayList<>(set);
-
-//        List<Task> tasks = new ArrayList<>();
-//        for (Task task : this.tasks.values()) {
-//  //          if (task.getTaskType() != TaskType.EPIC) { // Эпики как понимаю не записываем в сортированный список, но это не точно
-//                tasks.add(task);
-//  //          }
-//        }
-//
-//        List<Task> sortedTasks = tasks.stream()
-////                .sorted((t1, t2) -> t1.getStartTime().compareTo(t2.getStartTime()))
-//                .filter(task -> task.getStartTime() != null)
-//                .sorted(Comparator.comparing(Task::getStartTime))
-//                .collect(Collectors.toList());
-//
-//        for (Task sortedTask : sortedTasks) {
-//            System.out.println(sortedTask);
-//        }
-//        return sortedTasks;
-    }
-//        List<Map.Entry<UUID, Task>> list = new ArrayList<>(map.entrySet());
-//        list.sort(Map.Entry.comparingByValue());
-//
-//        Map<UUID, Task> result = new LinkedHashMap<>();
-//        for (Map.Entry<UUID, Task> entry : list) {
-//            result.put(entry.getKey(), entry.getValue());
-//        }
-
-
-    public HistoryManager getHistoryManager() {
+    protected HistoryManager getHistoryManager() {
         return historyManager;
     }
 
-
-    public void setStartTimeToEpic() {
-
-    }
 }

@@ -15,70 +15,76 @@ public class Task {
     private String name;
     private String description;
     private Status status;
-    private int duration;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private int duration;
 
-    public Task(TaskType taskType,
-                String name,
-                String description,
-                Status status,
-                LocalDateTime startTime,
-                int duration) {
+    public Task(
+            TaskType taskType,
+            String name,
+            String description,
+            Status status,
+            LocalDateTime startTime,
+            int duration
+    ) {
         this.taskType = taskType;
         this.name = name;
         this.description = description;
         this.status = status;
         this.startTime = startTime;
+        this.endTime = startTime.plusMinutes(duration);
         this.duration = duration;
+    }
+
+    public Task( // конструктор для Эпика без duration
+            TaskType taskType,
+            String name,
+            String description,
+            Status status,
+            LocalDateTime startTime
+    ) {
+        this.taskType = taskType;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.startTime = startTime;
         this.endTime = startTime.plusMinutes(duration);
     }
 
-    public Task(UUID id,
-                TaskType taskType,
-                String name,
-                String description,
-                Status status ,
-                LocalDateTime startTime,
-                int duration) {
+    public Task( // для восстановления taskfromString()
+            UUID id,
+            TaskType taskType,
+            String name,
+            String description,
+            Status status,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            int duration
+    ) {
         this.id = id;
         this.taskType = taskType;
         this.name = name;
         this.description = description;
         this.status = status;
         this.startTime = startTime;
+        this.endTime = endTime;
         this.duration = duration;
     }
 
-    public Task(TaskType taskType,
-                String name,
-                String description,
-                Status status) {
-        this.taskType = taskType;
-        this.name = name;
-        this.description = description;
-        this.status = status;
-    }
-
-    public Task(UUID id,
-                TaskType taskType,
-                String name,
-                String description,
-                Status status) {
-        this.id = id;
-        this.taskType = taskType;
-        this.name = name;
-        this.description = description;
-        this.status = status;
-    }
-
     public UUID getId() {
+        UUID id = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        try {
+            return this.id;
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
         return id;
     }
 
     public void setId(UUID id) {
         this.id = id;
     }
+
     public TaskType getTaskType() {
         return taskType;
     }
@@ -165,8 +171,8 @@ public class Task {
         result = id + "," +
                 taskType + "," +
                 name + "," +
-                status + "," +
                 description + "," +
+                status + "," +
                 startTime + "," +
                 endTime + "," +
                 duration + ",";
@@ -174,7 +180,7 @@ public class Task {
     }
 
 
-// refactoring
+    // refactoring
     public List<UUID> getSubtasks() {
         List<UUID> list = new ArrayList<>();
         return list;
@@ -182,5 +188,12 @@ public class Task {
 
     public UUID getEpicId() {
         return null;
+    }
+
+    public void removeSubtask(UUID id) {
+    }
+
+    public String cleanSubtaskIds() {
+        return "Список Эпика от подзадач очищен."; // ТЗ - 7
     }
 }

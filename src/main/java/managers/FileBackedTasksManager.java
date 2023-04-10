@@ -20,60 +20,86 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     private static final String saveTasksFilePath = String.join(sep, "src", "main", "java", "resources", "taskSaves" + ".csv");
     private static File file = new File(saveTasksFilePath);
     private static String history;
+    HistoryManager historyManager = new InMemoryHistoryManager();
 
 
     // +++++++++++++++++++++++++++++++++++++++ TEST BLOCK +++++++++++++++++++++++++++++++++++++++
-//    public static void main(String[] args) throws IOException {
-//
-////-файл в 1й менеджер должен передаваться пустой,
-//        PrintWriter writer = new PrintWriter(file);
-//        writer.print("");
-//        writer.close();
-//        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
-//
-//// - создать несколько задач, добавить из в менеджер, вызвать - что бы заполнилась история,
-//
-//        Task task1 = new Task(TaskType.TASK, "Переезд", Status.NEW, "Собрать коробки");
-//        fileBackedTasksManager.addNewTask(task1);
-//        Epic epic1 = new Epic(TaskType.EPIC, "Переезд", Status.NEW, "Переезд", new ArrayList<>());
-//        fileBackedTasksManager.addNewTask(epic1);
-//        Subtask subtask1 = new Subtask(TaskType.SUBTASK, "тест1", Status.NEW, "Собрать коробки", epic1.getId(), LocalDateTime.now(), 50);
-//        Subtask subtask2 = new Subtask(TaskType.SUBTASK, "тест2", Status.NEW, "Упаковать кошку", epic1.getId(), LocalDateTime.now(), 5);
-//        fileBackedTasksManager.addNewTask(subtask1);
-//        fileBackedTasksManager.addNewTask(subtask2);
-//
-//        fileBackedTasksManager.getTask(task1.getId());
-//        fileBackedTasksManager.getTask(epic1.getId());
-//        fileBackedTasksManager.getTask(subtask1.getId());
-//        fileBackedTasksManager.getTask(subtask2.getId());
-//
-//
-//        System.out.println("вывод всех задач менеджера 1:");
-//        fileBackedTasksManager.getTasks().values().forEach(System.out::println);
-//        System.out.println();
-//        fileBackedTasksManager.getHistory().forEach(task -> System.out.println(task));
-//
-//        fileBackedTasksManager.changeStatusTask(subtask1.getId(), Status.DONE);
-//        fileBackedTasksManager.changeStatusTask(subtask2.getId(), Status.DONE);
-//
-//
-//
-//        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//
-//        fileBackedTasksManager.getTasks().values().stream().forEach(t -> System.out.println(t));
-//        System.out.println();
-//        fileBackedTasksManager.getHistory().stream().forEach(task -> System.out.println(task));
-//
-//        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//
-//        FileBackedTasksManager fileBackedTasksManager2 = loadFromFile(fileBackedTasksManager.file);
-//        System.out.println("вывод всех задач менеджера 2:");
-//        fileBackedTasksManager2.taskfromString().stream().forEach(System.out::println);
-//        System.out.println("вывод истории просмотров менеджера 2:");
-//        fileBackedTasksManager2.getHistoryTasks().stream().forEach(System.out::println); // если без стрима то пишет ошибку на println
-//
-//
-//    }
+    public static void main(String[] args) throws IOException {
+
+//-файл в 1й менеджер должен передаваться пустой,
+        PrintWriter writer = new PrintWriter(file);
+        writer.print("");
+        writer.close();
+        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
+
+        LocalDateTime dateTimeTestTask1 = LocalDateTime.parse("2014-12-22T05:10:30");
+        LocalDateTime dateTimeTestTask2 = LocalDateTime.parse("2014-12-22T05:00:30");
+        LocalDateTime dateTimeTestEpic1 = LocalDateTime.parse("2015-12-22T08:15:30");
+        LocalDateTime dateTimeTestSubtask1 = LocalDateTime.parse("2016-12-22T10:20:30");
+
+        List<UUID> subtasksList = new ArrayList<>();
+
+// - создать несколько задач, добавить из в менеджер, вызвать - что бы заполнилась история,
+
+        Task task1 = new Task(
+                TaskType.TASK,
+                "Переезд",
+                "Собрать коробки",
+                Status.NEW,
+                dateTimeTestTask1,
+                50);
+        fileBackedTasksManager.addNewTask(task1);
+
+
+        Epic epic1 = new Epic(
+                TaskType.EPIC,
+                "Переезд",
+                "Переезд",
+                Status.NEW,
+                dateTimeTestEpic1,
+                subtasksList);
+        fileBackedTasksManager.addNewTask(epic1);
+        Subtask subtask1 = new Subtask(
+                TaskType.SUBTASK,
+                "тест1",
+                "Собрать коробки",
+                Status.NEW,
+                dateTimeTestSubtask1,
+                50,
+                epic1.getId());
+
+        fileBackedTasksManager.addNewTask(subtask1);
+
+        fileBackedTasksManager.getTask(task1.getId());
+        fileBackedTasksManager.getTask(epic1.getId());
+        fileBackedTasksManager.getTask(subtask1.getId());
+
+
+        System.out.println("вывод всех задач менеджера 1:");
+        fileBackedTasksManager.getTasks().values().forEach(System.out::println);
+        System.out.println();
+        fileBackedTasksManager.getHistory().forEach(task -> System.out.println(task));
+
+        fileBackedTasksManager.changeStatusTask(subtask1.getId(), Status.DONE);
+
+
+
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+        fileBackedTasksManager.getTasks().values().stream().forEach(t -> System.out.println(t));
+        System.out.println();
+        fileBackedTasksManager.getHistory().stream().forEach(task -> System.out.println(task));
+
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+        FileBackedTasksManager fileBackedTasksManager2 = loadFromFile(fileBackedTasksManager.file);
+        System.out.println("вывод всех задач менеджера 2:");
+        fileBackedTasksManager2.taskfromString().stream().forEach(System.out::println);
+        System.out.println("вывод истории просмотров менеджера 2:");
+        fileBackedTasksManager2.getHistoryTasks().stream().forEach(System.out::println); // если без стрима то пишет ошибку на println
+
+
+    }
     // +++++++++++++++++++++++++++++++++++++++ TEST BLOCK +++++++++++++++++++++++++++++++++++++++
 
     public FileBackedTasksManager(File file) {
@@ -118,7 +144,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             }
             out.write("\n"); // пустая строка после задач
             var lastLine = historyToString(getHistoryManager());
-            out.write(lastLine);
+            if (!getTasks().isEmpty()) {
+                out.write(lastLine);
+            }
         } catch (IOException e) {
             e.printStackTrace();
             throw new ManagerSaveException("файл не найден");
@@ -142,7 +170,8 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         String name;
         String description;
         Status status;
-        LocalDateTime startTime = null;
+        LocalDateTime startTime;
+        LocalDateTime endTime;
         int duration = 0;
         List<UUID> list = new ArrayList<>();
         UUID epicId = null;
@@ -160,22 +189,25 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     id = UUID.fromString(String.valueOf(line.get(0)));
                     taskType = TaskType.valueOf(line.get(1));
                     name = line.get(2);
-                    status = Status.valueOf(line.get(3));
-                    description = line.get(4);
-                    if (line.size() == 6) {
-                        epicId = UUID.fromString(line.get(5));
+                    description = line.get(3);
+                    status = Status.valueOf(line.get(4));
+                    startTime = LocalDateTime.parse(line.get(5));
+                    endTime = LocalDateTime.parse(line.get(6));
+                    duration = Integer.parseInt(line.get(7));
+                    if (line.size() == 9) {
+                        epicId = UUID.fromString(line.get(8));
                     }
 
                     if (line.get(1).equals(TaskType.TASK.toString())) {
-                        task = new Task(id, taskType, name, description, status, startTime, duration);
+                        task = new Task(id, taskType, name, description, status, startTime, endTime, duration);
                         tasks.add(task);
                     } else if (line.get(1).equals(TaskType.EPIC.toString())) {
-                        epic = new Epic(id, taskType, name, description, status, list);
+                        epic = new Epic(id, taskType, name, description, status, startTime, endTime, duration, list);
                         epicList.add(epic);
                     }
 
                     if (line.get(1).equals(TaskType.SUBTASK.toString())) {
-                        subtask = new Subtask(id, taskType, name, description, status, epicId, startTime, duration);
+                        subtask = new Subtask(id, taskType, name, description, status, startTime, endTime, duration, epicId);
                         tasks.add(subtask);
                         subtasksOfEpicField.put(id, epicId);
                     }
@@ -187,7 +219,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                         .filter(e -> Objects.equals(e.getValue(), ep.getId()))
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toList());
-                ep.setSubtasks(epicsSubtasks);
+                for (UUID uuid : epicsSubtasks) {
+                    ep.setSubtasks(uuid);
+                }
                 tasks.add(ep);
             }
             check = false;
@@ -213,12 +247,13 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    private List<Task> getHistoryTasks() {
+    public List<Task> getHistoryTasks() {
         List<Task> tasks = new ArrayList<>();
         tasks = readCsvHistoryFromFile().stream()
                 .flatMap(s -> taskfromString().stream()
                         .filter(task -> task.getId().toString().equals(s)))
                 .collect(Collectors.toList());
+        save();
         return tasks;
     }
 
@@ -247,10 +282,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     // "модифицирующую операцию" как-то слишком завуалированно звучит тем более для студентов без опыта программирования не кажется?, им в ТЗ так и надо прописать "переопределить все методы которые меняют состояние менеджера: добавление, удаление, обновление, просмотр задач" чтоб и ежу было понятно
     //* так понимаю это все нужно для метода save(), чтоб каждый раз сохранял
     @Override
-    public UUID addNewTask(Task task) { // добавление
+    public void addNewTask(Task task) { // добавление
         super.addNewTask(task);
         save();
-        return task.getId();
     }
 
 
@@ -307,18 +341,10 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     @Override
-    public List<Task> getPrioritizedTasks() {
-        List<Task> prioritizedTasks = super.getPrioritizedTasks();
+    public Set<Task> getPrioritizedTasks() {
+        Set<Task> prioritizedTasks = super.getPrioritizedTasks();
         save();
         return prioritizedTasks;
     }
-
-//    @Override
-//    public List<Task> sortByValue() {
-//        List<Task> result = super.sortByValue();
-//        save();
-//        return result;
-//    }
-
 
 }

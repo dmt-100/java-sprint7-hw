@@ -13,8 +13,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,31 +42,50 @@ class InMemoryTaskManagerTest2 {
     Subtask subtask1;
     Task taskUpdate;
     static UUID uuidTask;
-    static UUID incorrectUuid = UUID.randomUUID();
+    static UUID randomUuid = UUID.randomUUID();
+
+    LocalDateTime dateTimeTestTask1;
+    LocalDateTime dateTimeTestTask2;
+    LocalDateTime dateTimeTestEpic1;
+    LocalDateTime dateTimeTestSubtask1;
 
     @Test
     void create() {
+
+        dateTimeTestTask1 = LocalDateTime.parse("2014-12-22T05:10:30");
+        dateTimeTestTask2 = LocalDateTime.parse("2014-12-22T05:00:30");
+        dateTimeTestEpic1 = LocalDateTime.parse("2015-12-22T08:15:30");
+        dateTimeTestSubtask1 = LocalDateTime.parse("2016-12-22T10:20:30");
+
         List<UUID> subtasksList = new ArrayList<>();
 
-        task1 = new Task(UUID.randomUUID(),
+        task1 = new Task(
                 TaskType.TASK,
                 "Переезд",
                 "Собрать коробки",
                 Status.NEW,
-                LocalDateTime.now(),
+                dateTimeTestTask1,
                 50);
         inMemoryTaskManager.addNewTask(task1);
 
-        epic1 = new Epic(UUID.randomUUID(),
+        epic1 = new Epic(
                 TaskType.EPIC,
                 "Переезд",
                 "Переезд",
                 Status.NEW,
+                dateTimeTestEpic1,
                 subtasksList);
         inMemoryTaskManager.addNewTask(epic1);
 
-        subtask1 = new Subtask(UUID.randomUUID(), TaskType.SUBTASK, "тест1",
-                "Собрать коробки", Status.NEW, epic1.getId(), LocalDateTime.now(), 50);
+        subtask1 = new Subtask(
+                TaskType.SUBTASK,
+                "тест1",
+                "Собрать коробки",
+                Status.NEW,
+                dateTimeTestSubtask1,
+                50,
+                epic1.getId()
+                );
         inMemoryTaskManager.addNewTask(subtask1);
 
         subtasksList.add(subtask1.getId());
@@ -98,18 +119,35 @@ class InMemoryTaskManagerTest2 {
 
     @Test
     void addNewTask() {
-        task1 = new Task(UUID.randomUUID(), TaskType.TASK, "Переезд",
-                "Собрать коробки", Status.NEW, LocalDateTime.now(), 50);
+        task1 = new Task(
+                TaskType.TASK,
+                "Переезд",
+                "Собрать коробки",
+                Status.NEW,
+                dateTimeTestTask1,
+                50);
         inMemoryTaskManager.addNewTask(task1);
         inMemoryTaskManager.getTasks().put(task1.getId(), task1);
         assertEquals(task1, inMemoryTaskManager.getTask(task1.getId()));
 
         inMemoryTaskManager.getTasks().clear();
-        epic1 = new Epic(UUID.randomUUID(), TaskType.EPIC, "Переезд", "Переезд", Status.NEW,
+        epic1 = new Epic(
+                TaskType.EPIC,
+                "Переезд",
+                "Переезд",
+                Status.NEW,
+                dateTimeTestEpic1,
                 subtasksList);
         inMemoryTaskManager.addNewTask(epic1);
-        subtask1 = new Subtask(UUID.randomUUID(), TaskType.SUBTASK, "тест1",
-                "Собрать коробки", Status.NEW, epic1.getId(), LocalDateTime.now(), 50);
+        subtask1 = new Subtask(
+                TaskType.SUBTASK,
+                "тест1",
+                "Собрать коробки",
+                Status.NEW,
+                dateTimeTestSubtask1,
+                50,
+                epic1.getId()
+        );
         inMemoryTaskManager.addNewTask(subtask1);
         UUID uuidSubtask;
         uuidSubtask = inMemoryTaskManager.getSubtasksFromEpic(epic1.getId()).get(0).getId();
@@ -132,6 +170,7 @@ class InMemoryTaskManagerTest2 {
 
     @Test
     void getTask() {
+//        UUID uuidTask = UUID.fromString("00000000-0000-0000-0000-000000000000");
         create();
         // a. Со стандартным поведением.
         assertEquals(uuidTask, inMemoryTaskManager.getTask(uuidTask).getId());
@@ -141,7 +180,7 @@ class InMemoryTaskManagerTest2 {
         NullPointerException ex = assertThrows(NullPointerException.class, new Executable() {
             @Override
             public void execute() {
-                inMemoryTaskManager.getTask(uuidTask).getId();
+                inMemoryTaskManager.getTask(uuidTask).getId(); // не доконца разобрался еще почему Cannot invoke "main.java.tasks.Task.getId()"
             }
         });
         assertNull(ex.getMessage());
@@ -149,7 +188,7 @@ class InMemoryTaskManagerTest2 {
         // c. С неверным идентификатором задачи (пустой и/или несуществующий идентификатор).
         create();
         NullPointerException ex2 = assertThrows(NullPointerException.class, () -> {
-            inMemoryTaskManager.getTask(incorrectUuid).getId(); // несуществующий UUID
+            inMemoryTaskManager.getTask(randomUuid).getId(); // несуществующий UUID
         });
         assertNull(ex2.getMessage());
         inMemoryTaskManager.getTasks().clear();
@@ -178,7 +217,7 @@ class InMemoryTaskManagerTest2 {
         create();
 
         NullPointerException ex = assertThrows(NullPointerException.class, () -> {
-            inMemoryTaskManager.removeTaskById(incorrectUuid); // несуществующий UUID
+            inMemoryTaskManager.removeTaskById(randomUuid); // несуществующий UUID
         });
         assertTrue(ex.getMessage().contentEquals("Неверный идентификатор задачи"));
 
@@ -213,7 +252,7 @@ class InMemoryTaskManagerTest2 {
 
         create();
         NullPointerException ex = assertThrows(NullPointerException.class, () -> {
-            inMemoryTaskManager.getSubtasksFromEpic(incorrectUuid);
+            inMemoryTaskManager.getSubtasksFromEpic(randomUuid);
         });
         assertTrue(ex.getMessage().contentEquals("Неверный идентификатор задачи"));
 
@@ -310,16 +349,23 @@ class InMemoryTaskManagerTest2 {
 
     // ============================================================================
 
-
     @Test
-    void getHistory() {
+    void prioritizeTasks() {
+        create();
+        inMemoryTaskManager.prioritizeTasks();
+        LocalDateTime testTime = LocalDateTime.parse("2000-01-01 00:00:00",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.US)); // 2014-12-22T05:10:30
+        boolean flag = false;
+        for (Task task : inMemoryTaskManager.getTasks().values()) {
+            if (task.getStartTime().isAfter(testTime)) {
+                flag = true;
+                testTime = task.getStartTime();
+            }
+        }
+        assertTrue(flag);
     }
 
-    @Test
-    void getTasks() {
-    }
 
-    @Test
-    void getHistoryManager() {
-    }
+
+
 }

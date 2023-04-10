@@ -9,7 +9,7 @@ public interface HistoryManager {
 
     void add(Task task);
 
-    void remove(UUID id);
+    String remove(UUID id);
 
     List<Task> getCustomLinkedList();
 

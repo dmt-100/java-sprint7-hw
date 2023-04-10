@@ -11,11 +11,11 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void add(Task task) {
-        customLinkedList.linkLast(task);
-        if (customLinkedList.tasksMap.containsKey(task.getId())) {
+        if (task != null) {
+            customLinkedList.linkLast(task);
             customLinkedList.removeNode(customLinkedList.tasksMap.get(task.getId()));
+            customLinkedList.tasksMap.put(task.getId(), customLinkedList.tail);
         }
-        customLinkedList.tasksMap.put(task.getId(), customLinkedList.tail);
     }
 
     @Override
@@ -24,12 +24,19 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public void remove(UUID id) {
-        if (customLinkedList.tasksMap.containsKey(id)) {
+    public String remove(UUID id) {
+        String str;
+        if (!customLinkedList.tasksMap.containsKey(id)) {
+            str = "Задачи с таким id в истории нет";
+
+        } else {
             customLinkedList.removeNode(customLinkedList.tasksMap.get(id));
             customLinkedList.tasksMap.remove(id);
+            str = "Задача удалена из истории";
         }
+        return str;
     }
+
 }
 
 class CustomLinkedList<Task> {
@@ -39,15 +46,17 @@ class CustomLinkedList<Task> {
     private Node<Task> temp; // для повторного использования getCustomLinkedList()
 
     public void linkLast(Task task) {
-        final Node<Task> oldTail = tail;
-        final Node<Task> newNode = new Node<>(oldTail, task, null);
-        tail = newNode;
-        if (oldTail == null) {
-            head = newNode;
-            temp = head;
-        } else {
-            oldTail.next = newNode;
-        }
+//        if (tail != null) {
+            final Node<Task> oldTail = tail;
+            final Node<Task> newNode = new Node<>(oldTail, task, null);
+            tail = newNode;
+            if (oldTail == null) {
+                head = newNode;
+                temp = head;
+            } else {
+                oldTail.next = newNode;
+            }
+//        }
     }
 
     public ArrayList<Task> getTasksByNodes() {
@@ -63,25 +72,27 @@ class CustomLinkedList<Task> {
     }
 
     public void removeNode(Node node) {
-        final Node<Task> next = node.next;
-        final Node<Task> prev = node.prev;
+        if (node != null) {
+            final Node<Task> next = node.next;
+            final Node<Task> prev = node.prev;
 
-        // Если в списке всего один элемент и мы его удаляем, то хвост и голова должны стать null
-        if (next == null && prev == null) {
-            head = null;
-            tail = null;
-        } else {
-            if (prev == null) {
-                head = next;
+            // Если в списке всего один элемент и мы его удаляем, то хвост и голова должны стать null
+            if (next == null && prev == null) {
+                head = null;
+                tail = null;
             } else {
-                prev.next = next;
-                node.prev = null;
-            }
-            if (next == null) {
-                tail = prev;
-            } else {
-                next.prev = prev;
-                node.next = null;
+                if (prev == null) {
+                    head = next;
+                } else {
+                    prev.next = next;
+                    node.prev = null;
+                }
+                if (next == null) {
+                    tail = prev;
+                } else {
+                    next.prev = prev;
+                    node.next = null;
+                }
             }
         }
     }

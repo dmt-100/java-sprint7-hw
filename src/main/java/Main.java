@@ -19,7 +19,16 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
 
-        Task task1 = new Task(TaskType.TASK, "Переезд", "Собрать коробки", Status.NEW, LocalDateTime.now(), 50);
+        // для тестов на пересечение
+        LocalDateTime dateTimeTestTask1 = LocalDateTime.parse("2014-12-22T05:10:30");
+        LocalDateTime dateTimeTestTask2 = LocalDateTime.parse("2014-12-22T05:00:30");
+
+        LocalDateTime dateTimeTestEpic1 = LocalDateTime.parse("2015-12-22T08:15:30");
+        LocalDateTime dateTimeTestSubtask1 = LocalDateTime.parse("2016-12-22T10:20:30");
+        LocalDateTime dateTimeTestSubtask2 = LocalDateTime.parse("2016-12-22T10:40:30");
+
+
+        Task task1 = new Task(TaskType.TASK, "Переезд", "Собрать коробки", Status.NEW, dateTimeTestTask1, 50);
 //        Task task2 = new Task(TaskType.TASK, "Переезд", "Упаковать кошку", Status.NEW, LocalDateTime.now(), 5);
 //        Task task3 = new Task(TaskType.TASK, "Переезд", "Сказать слова прощания", Status.NEW, LocalDateTime.now(), 2);
 //        Task task4 = new Task(TaskType.TASK, "Переезд", "Собрать коробки", Status.NEW, LocalDateTime.now(), 50);
@@ -27,14 +36,13 @@ public class Main {
 //        Task task6 = new Task(TaskType.TASK, "Переезд", "Сказать слова прощания", Status.NEW, LocalDateTime.now(), 2);
 
         List<UUID> subtasksList = new ArrayList<>();
-        Epic epic1 = new Epic(UUID.randomUUID(), TaskType.EPIC, "Переезд", "Переезд", Status.NEW,
-                subtasksList);
+        Epic epic1 = new Epic(TaskType.EPIC, "Переезд", "Переезд", Status.NEW, dateTimeTestEpic1, subtasksList);
 //        Epic epic2 = new Epic(UUID.randomUUID(), TaskType.EPIC, "Переезд2", Status.NEW, "Переезд2", subtasksList);
 
         Subtask subtask1 = new Subtask(TaskType.SUBTASK, "тест1",
-                "Собрать коробки", Status.NEW, LocalDateTime.now(), 50);
+                "Собрать коробки", Status.NEW, dateTimeTestSubtask1, 50);
         Subtask subtask2 = new Subtask(TaskType.SUBTASK, "тест2",
-                "Упаковать кошку", Status.NEW, LocalDateTime.now(), 5);
+                "Упаковать кошку", Status.NEW, dateTimeTestSubtask2, 15);
 //        Subtask subtask3 = new Subtask(TaskType.SUBTASK, "тест3", Status.NEW,
 //                "Сказать слова прощания", epic1.getId());
 
@@ -50,19 +58,18 @@ public class Main {
                     switch (userInputCase1) {
                         case 1:
                             fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
-                                    "Собрать коробки",Status.NEW, LocalDateTime.now(), 50));
+                                    "Собрать коробки",Status.NEW, dateTimeTestTask1, 50));
                             fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
-                                    "Упаковать кошку", Status.NEW, LocalDateTime.now(), 5));
-                            fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
-                                    "Сказать слова прощания", Status.NEW, LocalDateTime.now(), 2));
-                            fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
-                                    "Собрать коробки", Status.NEW, LocalDateTime.now(), 50));
-                            fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
-                                    "Упаковать кошку", Status.NEW, LocalDateTime.now(), 5));
+                                    "Упаковать кошку", Status.NEW, dateTimeTestTask2, 5));
+//                            fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
+//                                    "Сказать слова прощания", Status.NEW, LocalDateTime.now(), 2));
+//                            fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
+//                                    "Собрать коробки", Status.NEW, LocalDateTime.now(), 50));
+//                            fileBackedTasksManager.addNewTask(new Task(TaskType.TASK, "Переезд",
+//                                    "Упаковать кошку", Status.NEW, LocalDateTime.now(), 5));
                             break;
                         case 2:
-                            fileBackedTasksManager.addNewTask(new Epic(UUID.randomUUID(), TaskType.EPIC,
-                                    "Переезд1", "Переезд1", Status.NEW, subtasksList));
+                            fileBackedTasksManager.addNewTask(epic1);
 //                            fileBackedTasksManager.addNewTask(new Epic(UUID.randomUUID(), TaskType.EPIC,
 //                                    "Переезд2", "Переезд2", Status.NEW, subtasksList));
 //                            fileBackedTasksManager.addNewTask(new Epic(UUID.randomUUID(), TaskType.EPIC,
@@ -72,12 +79,10 @@ public class Main {
                             // нужно внести Id эпика в подзадачу, чтобы привязать подзадачу к Эпику
                             // точно не помню как в задании, нужно их перечитать
                             // пока что это тесты для вычисления правильного сложения времени эпика
-                            System.out.println("Введите идентификатор Эпика для внесения данной подзадачи");
-                            UUID epicId = UUID.fromString(scanner.next());
-                            subtask1.setEpicId(epicId);
-                            System.out.println("Введите идентификатор Эпика для внесения данной подзадачи");
-                            UUID epicId2 = UUID.fromString(scanner.next());
-                            subtask2.setEpicId(epicId2);
+
+                            subtask1.setEpicId(epic1.getId()); // ТЗ-7 подразумевается что епик создается до подзадачи
+
+                            subtask2.setEpicId(epic1.getId());
 
                             fileBackedTasksManager.addNewTask(subtask1);
                             fileBackedTasksManager.addNewTask(subtask2);
@@ -151,7 +156,7 @@ public class Main {
                             // Помимо id задачи который хотим заменить нужен также id эпика для обновление списка
                             // поэтому подразумевается что епик уже занесен в мапу
                             Subtask subtaskTest2 = new Subtask(TaskType.SUBTASK, "тест1",
-                                    "Собрать коробки", Status.NEW, epic1.getId(), LocalDateTime.now(), 50); // исправить
+                                    "Собрать коробки", Status.NEW, LocalDateTime.now(), 50, epic1.getId()); // исправить
 //                            fileBackedTasksManager.updateSubtask(subtaskTest2);
                             break;
                     }

@@ -10,34 +10,42 @@ import java.util.UUID;
 public class Subtask extends Task {
     private UUID epicId;
 
-    public Subtask(TaskType taskType,
-                   String name,
-                   String description,
-                   Status status,
-                   UUID epicId,
-                   LocalDateTime startTime,
-                   int duration) {
+    public Subtask(
+            TaskType taskType,
+            String name,
+            String description,
+            Status status,
+            LocalDateTime startTime,
+            int duration,
+            UUID epicId
+    ) {
         super(taskType, name, description, status, startTime, duration);
         this.epicId = epicId;
     }
-    public Subtask(TaskType taskType,
-                   String name,
-                   String description,
-                   Status status,
-                   LocalDateTime startTime,
-                   int duration) {
+
+    public Subtask(
+            TaskType taskType,
+            String name,
+            String description,
+            Status status,
+            LocalDateTime startTime,
+            int duration
+    ) {
         super(taskType, name, description, status, startTime, duration);
     }
 
-    public Subtask(UUID id,
-                   TaskType taskType,
-                   String name,
-                   String description,
-                   Status status,
-                   UUID epicId,
-                   LocalDateTime startTime,
-                   int duration) {
-        super(id, taskType, name, description, status, startTime, duration);
+    public Subtask( // конструктор для восстановления taskfromString()
+            UUID id,
+            TaskType taskType,
+            String name,
+            String description,
+            Status status,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            int duration,
+            UUID epicId
+    ) {
+        super(id, taskType, name, description, status, startTime, endTime, duration);
         this.epicId = epicId;
     }
 
@@ -71,10 +79,10 @@ public class Subtask extends Task {
                 ", taskType=" + getTaskType() +
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
+                ", status='" + getStatus() + '\'' +
                 ", startTime='" + getStartTime() + '\'' +
                 ", endTime='" + getEndTime() + '\'' +
                 ", duration='" + getDuration() + '\'' +
-                ", status='" + getStatus() + '\'' +
                 ", epicId=" + epicId +
                 '}';
     }

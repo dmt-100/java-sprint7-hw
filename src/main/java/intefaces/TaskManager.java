@@ -6,10 +6,11 @@ import main.java.tasks.Task;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public interface TaskManager {
-    UUID addNewTask(Task task);
+    void addNewTask(Task task);
 
     // case 2: Получение списка всех задач.-------------------------------------
     List<Task> getAllTasksByTaskType(TaskType taskType);
@@ -33,7 +34,7 @@ public interface TaskManager {
 
     Map<UUID, Task> getTasks();
 
-    List<Task> getPrioritizedTasks();
+    Set<Task> getPrioritizedTasks();
 
 //    List<Task> sortByValue();
 }
