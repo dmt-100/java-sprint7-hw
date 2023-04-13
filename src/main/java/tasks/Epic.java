@@ -30,6 +30,19 @@ public class Epic extends Task {
         this.subtasks = subtasks;
     }
 
+    public Epic(
+            UUID id,
+            TaskType taskType,
+            String name,
+            String description,
+            Status status,
+            LocalDateTime startTime,
+            List<UUID> subtasks
+    ) {
+        super(id, taskType, name, description, status, startTime);
+        this.subtasks = subtasks;
+    }
+
     public Epic( // конструктор для восстановления taskfromString()
                  UUID id,
                  TaskType taskType,
@@ -51,6 +64,7 @@ public class Epic extends Task {
         return subtasks;
     }
 
+    @Override
     public void setSubtasks(UUID subtask) {
         subtasks.add(subtask);
     }

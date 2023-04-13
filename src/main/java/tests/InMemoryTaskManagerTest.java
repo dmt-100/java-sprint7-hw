@@ -1,5 +1,6 @@
-package main.java.managers;
+package main.java.tests;
 
+import main.java.managers.InMemoryTaskManager;
 import main.java.service.Status;
 import main.java.service.TaskType;
 import main.java.tasks.Epic;
@@ -22,7 +23,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-class InMemoryTaskManagerTest2 {
+class InMemoryTaskManagerTest extends TaskManagerTest {
     private final PrintStream standardOut = System.out;
     private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
 
@@ -49,6 +50,11 @@ class InMemoryTaskManagerTest2 {
     LocalDateTime dateTimeTestEpic1;
     LocalDateTime dateTimeTestSubtask1;
 
+//    @Override
+//    void setTaskManager() {
+//
+//    }
+
     @Test
     void create() {
 
@@ -64,7 +70,7 @@ class InMemoryTaskManagerTest2 {
                 "Переезд",
                 "Собрать коробки",
                 Status.NEW,
-                dateTimeTestTask1,
+                LocalDateTime.parse("2000-01-01T00:00:00"),
                 50);
         inMemoryTaskManager.addNewTask(task1);
 
@@ -73,7 +79,7 @@ class InMemoryTaskManagerTest2 {
                 "Переезд",
                 "Переезд",
                 Status.NEW,
-                dateTimeTestEpic1,
+                LocalDateTime.parse("2000-01-01T00:00:00"),
                 subtasksList);
         inMemoryTaskManager.addNewTask(epic1);
 
@@ -82,7 +88,7 @@ class InMemoryTaskManagerTest2 {
                 "тест1",
                 "Собрать коробки",
                 Status.NEW,
-                dateTimeTestSubtask1,
+                LocalDateTime.parse("2000-01-01T00:00:00"),
                 50,
                 epic1.getId()
                 );
@@ -119,32 +125,32 @@ class InMemoryTaskManagerTest2 {
 
     @Test
     void addNewTask() {
-        task1 = new Task(
+        Task task1 = new Task(
                 TaskType.TASK,
                 "Переезд",
                 "Собрать коробки",
                 Status.NEW,
-                dateTimeTestTask1,
+                LocalDateTime.parse("2000-01-01T00:00:00"),
                 50);
         inMemoryTaskManager.addNewTask(task1);
         inMemoryTaskManager.getTasks().put(task1.getId(), task1);
         assertEquals(task1, inMemoryTaskManager.getTask(task1.getId()));
 
         inMemoryTaskManager.getTasks().clear();
-        epic1 = new Epic(
+        Epic epic1 = new Epic(
                 TaskType.EPIC,
                 "Переезд",
                 "Переезд",
                 Status.NEW,
-                dateTimeTestEpic1,
+                LocalDateTime.parse("2000-01-01T00:00:00"),
                 subtasksList);
         inMemoryTaskManager.addNewTask(epic1);
-        subtask1 = new Subtask(
+        Subtask subtask1 = new Subtask(
                 TaskType.SUBTASK,
                 "тест1",
                 "Собрать коробки",
                 Status.NEW,
-                dateTimeTestSubtask1,
+                LocalDateTime.parse("2000-01-01T00:00:00"),
                 50,
                 epic1.getId()
         );
@@ -153,6 +159,8 @@ class InMemoryTaskManagerTest2 {
         uuidSubtask = inMemoryTaskManager.getSubtasksFromEpic(epic1.getId()).get(0).getId();
         assertEquals(uuidSubtask, epic1.getSubtasks().get(0)); // проверка id сабтаска с тем что лежит в листе подзадач эпика
     }
+
+
 
     @Test
     void getAllTasksByTaskType() {
@@ -210,6 +218,7 @@ class InMemoryTaskManagerTest2 {
         inMemoryTaskManager.removeTaskById(task1.getId());
         assertNull(inMemoryTaskManager.getTask(task1.getId()));
 
+        inMemoryTaskManager.removeTaskById(subtask1.getId()); // по логике эпик удаляется только если у него нет сабтасков, но это нужно уточнить
         inMemoryTaskManager.removeTaskById(epic1.getId());
         assertNull(inMemoryTaskManager.getTask(epic1.getId()));
         assertNull(inMemoryTaskManager.getTask(subtask1.getId())); // проверка и на удаление подзадач
@@ -353,7 +362,7 @@ class InMemoryTaskManagerTest2 {
     void prioritizeTasks() {
         create();
         inMemoryTaskManager.prioritizeTasks();
-        LocalDateTime testTime = LocalDateTime.parse("2000-01-01 00:00:00",
+        LocalDateTime testTime = LocalDateTime.parse("1999-01-01 00:00:00",
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.US)); // 2014-12-22T05:10:30
         boolean flag = false;
         for (Task task : inMemoryTaskManager.getTasks().values()) {
@@ -364,8 +373,4 @@ class InMemoryTaskManagerTest2 {
         }
         assertTrue(flag);
     }
-
-
-
-
 }

@@ -212,7 +212,6 @@ public class Main {
                     for (Task task : fileBackedTasksManager.getPrioritizedTasks()) { //проверка
                         System.out.println(task);
                     }
-
                     break;
 
                 case 0: // Выход

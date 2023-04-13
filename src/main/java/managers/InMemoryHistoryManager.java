@@ -7,46 +7,52 @@ import main.java.tasks.Task;
 import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private final CustomLinkedList<Task> customLinkedList = new CustomLinkedList<>(); // класс с нодами
+     private final CustomLinkedList<Task> customLinkedList = new CustomLinkedList<>(); // класс с нодами
 
     @Override
-    public void add(Task task) {
+    public void add(Task task) {        // case 4, case 8
         if (task != null) {
             customLinkedList.linkLast(task);
-            customLinkedList.removeNode(customLinkedList.tasksMap.get(task.getId()));
-            customLinkedList.tasksMap.put(task.getId(), customLinkedList.tail);
+            customLinkedList.removeNode(customLinkedList.customLinkedNodes.get(task.getId()));
+            customLinkedList.customLinkedNodes.put(task.getId(), customLinkedList.tail);
         }
     }
 
     @Override
-    public ArrayList<Task> getCustomLinkedList() {
+    public ArrayList<Task> getTasksInHistory() {
         return customLinkedList.getTasksByNodes();
+    }
+
+    @Override
+    public Map<UUID, Node<Task>> getUuidNodes() {
+        return customLinkedList.getCustomLinkedNodes();
     }
 
     @Override
     public String remove(UUID id) {
         String str;
-        if (!customLinkedList.tasksMap.containsKey(id)) {
+        if (!customLinkedList.customLinkedNodes.containsKey(id)) {
             str = "Задачи с таким id в истории нет";
-
         } else {
-            customLinkedList.removeNode(customLinkedList.tasksMap.get(id));
-            customLinkedList.tasksMap.remove(id);
+            customLinkedList.removeNode(customLinkedList.customLinkedNodes.get(id));    // вначале удаляет ноду
+            customLinkedList.customLinkedNodes.remove(id);                              // затем перезаписывает
             str = "Задача удалена из истории";
         }
         return str;
     }
 
+
+
 }
 
 class CustomLinkedList<Task> {
-    Map<UUID, Node<Task>> tasksMap = new HashMap<>();
+    protected Map<UUID, Node<Task>> customLinkedNodes = new HashMap<>();
     private Node<Task> head;
     protected Node<Task> tail;
     private Node<Task> temp; // для повторного использования getCustomLinkedList()
 
     public void linkLast(Task task) {
-//        if (tail != null) {
+//        if (tail != null) { // гдето на тестах пришлось убрать, вроде как не нужна, удалить потом
             final Node<Task> oldTail = tail;
             final Node<Task> newNode = new Node<>(oldTail, task, null);
             tail = newNode;
@@ -95,6 +101,10 @@ class CustomLinkedList<Task> {
                 }
             }
         }
+    }
+
+    public Map<UUID, Node<Task>> getCustomLinkedNodes() {
+        return customLinkedNodes;
     }
 }
 //    public void removeNode(Node<Task> node) { // косячный убил полдня на поиск ошибки *head и tail нули

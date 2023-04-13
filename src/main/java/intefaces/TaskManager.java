@@ -21,7 +21,7 @@ public interface TaskManager {
 
     void updateTask(Task task);
 
-    void removeTaskById(UUID id);
+    short removeTaskById(UUID id);
 
     void changeStatusTask(UUID id, Status status);
 
@@ -33,6 +33,9 @@ public interface TaskManager {
     List<Task> getHistory();
 
     Map<UUID, Task> getTasks();
+
+    // case 11:
+    void prioritizeTasks();
 
     Set<Task> getPrioritizedTasks();
 

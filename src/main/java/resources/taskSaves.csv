@@ -1,6 +1,2 @@
 id,type,name,description,status,startTime,endTime,duration,epic
-d2ec546c-9f99-4e00-9e15-16a14aa227b6,SUBTASK,тест1,Собрать коробки,NEW,2016-12-22T10:20:30,2016-12-22T11:10:30,50,a87dde1f-a937-4461-ab39-d4dacd9731fb
-a87dde1f-a937-4461-ab39-d4dacd9731fb,EPIC,Переезд,Переезд,NEW,2015-12-22T08:15:30,2015-12-22T09:05:30,50
-20cebead-5233-4e87-b6fb-9b66f225b0c3,TASK,Переезд,Сказать слова прощания test Case5,NEW,2014-12-22T05:10:30,2014-12-22T06:00:30,50,
 
-20cebead-5233-4e87-b6fb-9b66f225b0c3,a87dde1f-a937-4461-ab39-d4dacd9731fb,d2ec546c-9f99-4e00-9e15-16a14aa227b6
