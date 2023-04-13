@@ -19,13 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
 
+// =========== это посоветовали в пачке ===========
     protected T taskManager;
-
-//    abstract void setTaskManager();
-
-
-
-
+    abstract void setTaskManager();
+// ================================================
 
     private static final String sep = File.separator;
     private static final String saveTasksFilePath = String.join(sep, "src", "main", "java", "resources", "taskSaves" + ".csv");
@@ -86,10 +83,10 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     // 1) все в порядке, задача достается,
 
-    void createSecond() {
-        fileBackedTasksManager.addNewTask(task);
-        fileBackedTasksManager.addNewTask(epic);
-        fileBackedTasksManager.addNewTask(subtask);
+    void get() {
+        fileBackedTasksManager.getTask(task.getId());
+        fileBackedTasksManager.getTask(epic.getId());
+        fileBackedTasksManager.getTask(subtask.getId());
     }
 
     // 1) все в порядке, задача достается,
@@ -409,6 +406,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         assertEquals(new ArrayList<>(), tasks);
     }
+
+// TEST static FileBackedTasksManager loadFromFile(File file) ==========================================================
+
 
 /*
   a. Со стандартным поведением. (из ТЗ)

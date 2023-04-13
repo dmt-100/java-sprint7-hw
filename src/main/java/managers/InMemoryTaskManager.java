@@ -241,10 +241,14 @@ public class InMemoryTaskManager implements TaskManager {
     // case 11:
     @Override
     public void prioritizeTasks() { // ТЗ-7 так как сет, то те задачи у которых одинаковое время будут перезаписываться, что бы этого избежать нужно чтобы стартовое время отличалось или просто вводить по одной задачи в мейне или заменить .now()
-        prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
-        prioritizedTasks.addAll(Stream.of(tasks.values())
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList()));
+        if (tasks.size() > 1) {
+            prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+            prioritizedTasks.addAll(Stream.of(tasks.values())
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+        } else {
+            System.out.println("Нужно ещё больше задач");
+        }
     }
 
     // ==========================   Getters       ==========================

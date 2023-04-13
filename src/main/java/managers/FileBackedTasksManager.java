@@ -246,11 +246,15 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     public List<Task> getHistoryTasks() {
         List<Task> tasks;
-        tasks = readCsvHistoryFromFile().stream()
-                .flatMap(s -> taskfromString().stream()
-                        .filter(task -> task.getId().toString().equals(s)))
-                .collect(Collectors.toList());
-        save();
+        if (readCsvHistoryFromFile().size() > 1) {
+            tasks = readCsvHistoryFromFile().stream()
+                    .flatMap(s -> taskfromString().stream()
+                            .filter(task -> task.getId().toString().equals(s)))
+                    .collect(Collectors.toList());
+            save();
+        } else {
+            tasks = new ArrayList<>();
+        }
         return tasks;
     }
 

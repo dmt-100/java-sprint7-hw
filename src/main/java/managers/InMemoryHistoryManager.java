@@ -9,7 +9,7 @@ import java.util.*;
 public class InMemoryHistoryManager implements HistoryManager {
      private final CustomLinkedList<Task> customLinkedList = new CustomLinkedList<>(); // класс с нодами
 
-    @Override
+
     public void add(Task task) {        // case 4, case 8
         if (task != null) {
             customLinkedList.linkLast(task);
@@ -18,17 +18,17 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
-    @Override
+
     public ArrayList<Task> getTasksInHistory() {
         return customLinkedList.getTasksByNodes();
     }
 
-    @Override
+
     public Map<UUID, Node<Task>> getUuidNodes() {
         return customLinkedList.getCustomLinkedNodes();
     }
 
-    @Override
+
     public String remove(UUID id) {
         String str;
         if (!customLinkedList.customLinkedNodes.containsKey(id)) {
@@ -40,8 +40,6 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
         return str;
     }
-
-
 
 }
 
