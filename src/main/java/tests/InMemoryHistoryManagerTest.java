@@ -16,8 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /* Не совсем понял про Дублирование чего?? насколько я помню из ТЗ задача переписывается с новым временем
 
@@ -269,5 +268,70 @@ Epic{id=92cde998-d9ca-497e-b604-058fe8fef042, taskType=EPIC, name='Переез�
         assertTrue(flag);
     }
 
+// =============================== public ArrayList<Task> getTasksInHistory()  ===============================
 
+    @Test
+    void testGetTasksInHistoryWithEmptyHistory() { // a. Пустая история задач.
+        clearHistory1();
+        assertEquals(new ArrayList<>(), inMemoryHistoryManager.getTasksInHistory());
+    }
+
+    @Test
+    void testGetTasksInHistoryWithDoubleTask() { // b. Дублирование.
+        LocalDateTime actualTime = null;
+        inMemoryHistoryManager.add(task1);
+        task1.setStartTime(LocalDateTime.parse("2000-01-01T00:11:11"));
+        inMemoryHistoryManager.add(task1);
+        LocalDateTime expectedTime = LocalDateTime.parse("2000-01-01T00:11:11");
+        for (Task task : inMemoryHistoryManager.getTasksInHistory()) {
+            if (task.getId().equals(task1.getId())) {
+                actualTime = task.getStartTime();
+            }
+        }
+        assertEquals(expectedTime, actualTime);
+    }
+
+    @Test
+    void testGetTasksInHistoryRemoveFirstTask() { // с. Удаление из истории: начало, середина, конец.
+        inMemoryHistoryManager.remove(task1.getId());
+        boolean flag = inMemoryHistoryManager.getUuidNodes().containsKey(epic1.getId()) &&
+                inMemoryHistoryManager.getUuidNodes().containsKey(subtask1.getId()) &&
+                inMemoryHistoryManager.getUuidNodes().size() == 2;
+        assertTrue(flag);
+    }
+
+    @Test
+    void testGetTasksInHistoryRemoveMiddleTask() { // с. Удаление из истории: середина
+        inMemoryHistoryManager.remove(epic1.getId());
+        boolean flag = inMemoryHistoryManager.getUuidNodes().containsKey(task1.getId()) &&
+                inMemoryHistoryManager.getUuidNodes().containsKey(subtask1.getId()) &&
+                inMemoryHistoryManager.getUuidNodes().size() == 2;
+        assertTrue(flag);
+    }
+
+    @Test
+    void testGetTasksInHistoryRemoveLastTask() { // с. Удаление из истории: конец.
+        inMemoryHistoryManager.remove(subtask1.getId());
+        boolean flag = inMemoryHistoryManager.getUuidNodes().containsKey(task1.getId()) &&
+                inMemoryHistoryManager.getUuidNodes().containsKey(epic1.getId()) &&
+                inMemoryHistoryManager.getUuidNodes().size() == 2;
+        assertTrue(flag);
+    }
+
+// =============================== public String remove(UUID id)  ===============================
+
+    @Test
+    void testRemoveWithEmptyHistory() { // a. Пустая история задач.
+        clearHistory1();
+        inMemoryHistoryManager.remove(task1.getId());
+        assertEquals("Задачи с таким id в истории нет", inMemoryHistoryManager.remove(task1.getId()));
+    }
+    @Test
+    void testRemoveWithDoubleTask() { // b. Дублирование.
+        inMemoryHistoryManager.remove(task1.getId());
+        inMemoryHistoryManager.remove(task1.getId());
+        assertEquals("Задачи с таким id в истории нет", inMemoryHistoryManager.remove(task1.getId()));
+    }
+// Уже давно по coverage 100% продолжать тесты не имеет смысла так как видимо дублируются выше методами на удаление
+//    inMemoryHistoryManager.remove(subtask1.getId());
 }

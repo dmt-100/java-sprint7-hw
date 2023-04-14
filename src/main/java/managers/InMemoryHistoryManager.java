@@ -7,8 +7,7 @@ import main.java.tasks.Task;
 import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-     private final CustomLinkedList<Task> customLinkedList = new CustomLinkedList<>(); // класс с нодами
-
+    private final CustomLinkedList<Task> customLinkedList = new CustomLinkedList<>(); // класс с нодами
 
     public void add(Task task) {        // case 4, case 8
         if (task != null) {
@@ -18,16 +17,13 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
-
     public ArrayList<Task> getTasksInHistory() {
         return customLinkedList.getTasksByNodes();
     }
 
-
     public Map<UUID, Node<Task>> getUuidNodes() {
         return customLinkedList.getCustomLinkedNodes();
     }
-
 
     public String remove(UUID id) {
         String str;
@@ -51,15 +47,15 @@ class CustomLinkedList<Task> {
 
     public void linkLast(Task task) {
 //        if (tail != null) { // гдето на тестах пришлось убрать, вроде как не нужна, удалить потом
-            final Node<Task> oldTail = tail;
-            final Node<Task> newNode = new Node<>(oldTail, task, null);
-            tail = newNode;
-            if (oldTail == null) {
-                head = newNode;
-                temp = head;
-            } else {
-                oldTail.next = newNode;
-            }
+        final Node<Task> oldTail = tail;
+        final Node<Task> newNode = new Node<>(oldTail, task, null);
+        tail = newNode;
+        if (oldTail == null) {
+            head = newNode;
+            temp = head;
+        } else {
+            oldTail.next = newNode;
+        }
 //        }
     }
 

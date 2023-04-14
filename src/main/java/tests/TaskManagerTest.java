@@ -19,11 +19,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
 
-// =========== это посоветовали в пачке ===========
+    // =========== это посоветовали в пачке ===========
     protected T taskManager;
+
     abstract void setTaskManager();
 // ================================================
+// но так и не совсем понял как правильно реализовать
+    // также насколько помню там писали что обычные геттеры без логики не требовались в тестах
 
+    // https://i.ibb.co/BCb09qt/image.png
+    // почти 100 по всем
     private static final String sep = File.separator;
     private static final String saveTasksFilePath = String.join(sep, "src", "main", "java", "resources", "taskSaves" + ".csv");
     private static File file = new File(saveTasksFilePath);
@@ -111,35 +116,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
 
-/*
-  a. Со стандартным поведением. (из ТЗ)
-  b. С пустым списком задач.
-  c. С неверным идентификатором задачи (пустой и/или несуществующий идентификатор).
-
-например, если тестировать метод getTask(Task task),
-то должно быть 3 теста на этот метод,
-1) все в порядке, задача достается,
-2) список пуст, соответветственно задача не достанется,
-3) в списке что-то есть, но нет нашей задачи, задача не достанется
-и так по каждому методу TaskManager
- */
-
-     /*
-     1.    void addNewTask(Task task);
-     2.    List<Task> getAllTasksByTaskType(TaskType taskType);
-     3.    void removeTasksByTasktype(TaskType taskType);
-     4.    Task getTask(UUID taskId);
-     5.    void updateTask(Task task);
-     6.    void removeTaskById(UUID id);
-     7.    void changeStatusTask(UUID id, Status status);
-     8.    List<Task> getSubtasksFromEpic(UUID epicId);
-     9.    void updateEpicStatus(UUID epicId);
-     10.    List<Task> getHistory();
-     11.    Map<UUID, Task> getTasks();
-     12.    Set<Task> getPrioritizedTasks();
-      */
-
-// =================================== /case 1/ void addNewTask(Task task) ===================================
+    // =================================== /case 1/ void addNewTask(Task task) ===================================
 /*
   a. Со стандартным поведением. (из ТЗ)
   b. С пустым списком задач.
@@ -372,7 +349,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         fileBackedTasksManager.getTask(epic.getId()); // заполняем историю по порядку
         fileBackedTasksManager.getTask(task.getId());
         List<Task> tasksByHistory = fileBackedTasksManager.getHistory();
-        boolean flag = (tasksByHistory.get(0).getTaskType().equals(TaskType.EPIC) && 
+        boolean flag = (tasksByHistory.get(0).getTaskType().equals(TaskType.EPIC) &&
                 tasksByHistory.get(1).getTaskType().equals(TaskType.TASK));
         assertTrue(flag);
     }
@@ -406,9 +383,35 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         assertEquals(new ArrayList<>(), tasks);
     }
+}
 
-// TEST static FileBackedTasksManager loadFromFile(File file) ==========================================================
+/*
+  a. Со стандартным поведением. (из ТЗ)
+  b. С пустым списком задач.
+  c. С неверным идентификатором задачи (пустой и/или несуществующий идентификатор).
 
+например, если тестировать метод getTask(Task task),
+то должно быть 3 теста на этот метод,
+1) все в порядке, задача достается,
+2) список пуст, соответветственно задача не достанется,
+3) в списке что-то есть, но нет нашей задачи, задача не достанется
+и так по каждому методу TaskManager
+ */
+
+/*
+     1.    void addNewTask(Task task);
+     2.    List<Task> getAllTasksByTaskType(TaskType taskType);
+     3.    void removeTasksByTasktype(TaskType taskType);
+     4.    Task getTask(UUID taskId);
+     5.    void updateTask(Task task);
+     6.    void removeTaskById(UUID id);
+     7.    void changeStatusTask(UUID id, Status status);
+     8.    List<Task> getSubtasksFromEpic(UUID epicId);
+     9.    void updateEpicStatus(UUID epicId);
+     10.    List<Task> getHistory();
+     11.    Map<UUID, Task> getTasks();
+     12.    Set<Task> getPrioritizedTasks();
+*/
 
 /*
   a. Со стандартным поведением. (из ТЗ)
@@ -460,8 +463,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
 //    void getTasks() {
 //
 //    }
-
-}
 
 /*
     void addNewTask(Task task);

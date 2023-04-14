@@ -21,7 +21,7 @@ public interface TaskManager {
 
     void updateTask(Task task);
 
-    short removeTaskById(UUID id);
+    void removeTaskById(UUID id);
 
     void changeStatusTask(UUID id, Status status);
 

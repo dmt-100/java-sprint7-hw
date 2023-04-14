@@ -303,10 +303,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     @Override
-    public short removeTaskById(UUID id) { // удаление
+    public void removeTaskById(UUID id) { // удаление
         super.removeTaskById(id);
         save();
-        return 0;
     }
 
     @Override

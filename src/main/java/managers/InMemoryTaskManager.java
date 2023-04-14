@@ -155,7 +155,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // case 6: Удалить по идентификатору. ----------------------------------------
     @Override
-    public short removeTaskById(UUID id) {
+    public void removeTaskById(UUID id) {
         Epic epic;
         try {
             if (tasks.get(id).getTaskType().equals(TaskType.EPIC)) {
@@ -192,7 +192,6 @@ public class InMemoryTaskManager implements TaskManager {
         } catch (NullPointerException e) {
             throw new NullPointerException("Неверный идентификатор задачи");
         }
-        return 0;
     }
 
     // case 7: Изменить статус --------------------------------------------------
