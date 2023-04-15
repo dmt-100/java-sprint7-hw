@@ -27,10 +27,9 @@ public class InMemoryTaskManager implements TaskManager {
                     if (!(taskInMap.getTaskType().equals(TaskType.EPIC) || task.getTaskType().equals(TaskType.EPIC))) {
                         task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
 
-                        if (checkTime(task) != null) {
+                        if (checkTime(task)) {
                             return;
                         }
-
                     }
                 }
             }
@@ -63,8 +62,8 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private String checkTime(Task task) {
-        String anotherTimeToPick = null;
+    private boolean checkTime(Task task) {
+        boolean isTimeCrossing = false;
         for (Task taskInMap : tasks.values()) {
             if (
                     (taskInMap.getStartTime().isBefore(task.getStartTime())
@@ -73,9 +72,10 @@ public class InMemoryTaskManager implements TaskManager {
                             && taskInMap.getEndTime().isAfter(task.getEndTime()))
             ) {
                 System.out.println("Пожалуйста выберете другое стартовое время");
+                isTimeCrossing = true;
             }
         }
-        return anotherTimeToPick;
+        return isTimeCrossing;
     }
 
     // case 2: Получение списка всех задач.-------------------------------------
@@ -189,7 +189,7 @@ public class InMemoryTaskManager implements TaskManager {
             }
             if (tasks.get(id).getTaskType().equals(TaskType.SUBTASK)) {
                 tasks.get(id).setStatus(status);
-                updateEpicStatus(tasks.get(id).getId());
+                updateEpicStatus(id);
             } else {
                 tasks.get(id).setStatus(status);
             }
@@ -256,34 +256,30 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateEpicStatus(UUID id) {
         UUID epicId = tasks.get(id).getEpicId();
         List<UUID> uuidsSubtasks = new ArrayList<>(tasks.get(epicId).getSubtasks());
-//        ArrayList<Status> subtasks = new  ArrayList<>();
-        int done = 0;
-        int inProgress = 0;
-        int newTask = 0;
+        int tasksWithStatusDone = 0;
+        int tasksWithStatusNew = 0;
+        int subtasksInEpic = tasks.get(epicId).getSubtasks().size();
 
         for (UUID uuidsSubtask : uuidsSubtasks) {
 
             Status status = tasks.get(uuidsSubtask).getStatus();
             switch (status) {
                 case NEW:
-                    newTask++;
-                    break;
-                case IN_PROGRESS:
-                    inProgress++;
+                    tasksWithStatusNew++;
                     break;
                 case DONE:
-                    done++;
+                    tasksWithStatusDone++;
                     break;
             }
         }
 
-
-        if (newTask < tasks.get(epicId).getSubtasks().size()) {
+        if (tasksWithStatusNew < subtasksInEpic) {
             tasks.get(epicId).setStatus(Status.IN_PROGRESS);
-        } else if (done == tasks.get(epicId).getSubtasks().size()) {
-            tasks.get(epicId).setStatus(Status.DONE);
         } else {
             tasks.get(epicId).setStatus(Status.NEW);
+        }
+        if (tasksWithStatusDone == subtasksInEpic) {
+            tasks.get(epicId).setStatus(Status.DONE);
         }
         System.out.println("Обновление списка эпика прошло успешно");
     }

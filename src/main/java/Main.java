@@ -21,12 +21,12 @@ public class Main {
         FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
 
         // для тестов на пересечение
-        LocalDateTime dateTimeTestTask1 = LocalDateTime.parse("2000-01-01T00:00:00");
-        LocalDateTime dateTimeTestTask2 = LocalDateTime.parse("2000-01-01T01:00:00");
+        LocalDateTime dateTimeTestTask1 = LocalDateTime.parse("2000-01-01T01:00:00");
+        LocalDateTime dateTimeTestTask2 = LocalDateTime.parse("2000-01-01T02:00:00");
 
-        LocalDateTime dateTimeTestEpic1 = LocalDateTime.parse("2000-01-01T00:00:00");
-        LocalDateTime dateTimeTestSubtask1 = LocalDateTime.parse("2000-01-01T03:00:00");
-        LocalDateTime dateTimeTestSubtask2 = LocalDateTime.parse("2000-01-01T04:00:00");
+        LocalDateTime dateTimeTestEpic1 = LocalDateTime.parse("2000-01-01T03:00:00");
+        LocalDateTime dateTimeTestSubtask1 = LocalDateTime.parse("2000-01-01T04:00:00");
+        LocalDateTime dateTimeTestSubtask2 = LocalDateTime.parse("2000-01-01T05:00:00");
 
         UUID epicUuid = UUID.fromString("11111111-d496-48c2-bb4a-f4cf88f18e23");
 //        UUID subtask1Uuid = UUID.fromString("22222222-d496-48c2-bb4a-f4cf88f18e23");
@@ -110,7 +110,7 @@ public class Main {
                                     "Переезд",
                                     "Упаковать кошку",
                                     Status.NEW,
-                                    dateTimeTestTask1,
+                                    dateTimeTestTask2,
                                     5
                             ));
                             break;
