@@ -24,14 +24,17 @@ public class Subtask extends Task {
     }
 
     public Subtask(
+            UUID id,
             TaskType taskType,
             String name,
             String description,
             Status status,
             LocalDateTime startTime,
-            int duration
+            int duration,
+            UUID epicId
     ) {
-        super(taskType, name, description, status, startTime, duration);
+        super(id, taskType, name, description, status, startTime, duration);
+        this.epicId = epicId;
     }
 
     public Subtask( // конструктор для восстановления taskfromString()

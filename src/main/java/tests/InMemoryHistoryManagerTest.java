@@ -87,7 +87,6 @@ public class InMemoryHistoryManagerTest {
                 "Собрать коробки",
                 Status.NEW,
                 startTimeTestTask1,
-                endTimeTestTask1,
                 50
         );
         inMemoryHistoryManager.add(task1);
@@ -99,7 +98,6 @@ public class InMemoryHistoryManagerTest {
                 "Переезд",
                 Status.NEW,
                 startTimeTestEpic1,
-                endTimeTestEpic1,
                 20,
                 subtasksList
         );
@@ -112,7 +110,6 @@ public class InMemoryHistoryManagerTest {
                 "Собрать коробки",
                 Status.NEW,
                 startTimeTestSubtask1,
-                endTimeTestSubtask1,
                 20,
                 epic1.getId()
         );

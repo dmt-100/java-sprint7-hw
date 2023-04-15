@@ -12,7 +12,6 @@ import java.util.UUID;
 public interface TaskManager {
     void addNewTask(Task task);
 
-    // case 2: Получение списка всех задач.-------------------------------------
     List<Task> getAllTasksByTaskType(TaskType taskType);
 
     void removeTasksByTasktype(TaskType taskType);
@@ -25,7 +24,6 @@ public interface TaskManager {
 
     void changeStatusTask(UUID id, Status status);
 
-
     List<Task> getSubtasksFromEpic(UUID epicId);
 
     void updateEpicStatus(UUID epicId);
@@ -34,10 +32,8 @@ public interface TaskManager {
 
     Map<UUID, Task> getTasks();
 
-    // case 11:
     void prioritizeTasks();
 
     Set<Task> getPrioritizedTasks();
 
-//    List<Task> sortByValue();
 }

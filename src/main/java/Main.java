@@ -1,13 +1,12 @@
 package main.java;
 
 import main.java.managers.FileBackedTasksManager;
-import main.java.service.*;
-import main.java.tasks.*;
+import main.java.service.Status;
+import main.java.service.TaskType;
+import main.java.tasks.Task;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -35,14 +34,14 @@ public class Main {
 //        Task task5 = new Task(TaskType.TASK, "Переезд", "Упаковать кошку", Status.NEW, LocalDateTime.now(), 5);
 //        Task task6 = new Task(TaskType.TASK, "Переезд", "Сказать слова прощания", Status.NEW, LocalDateTime.now(), 2);
 
-        List<UUID> subtasksList = new ArrayList<>();
-        Epic epic1 = new Epic(TaskType.EPIC, "Переезд", "Переезд", Status.NEW, dateTimeTestEpic1, subtasksList);
+//        List<UUID> subtasksList = new ArrayList<>();
+//        Epic epic1 = new Epic(TaskType.EPIC, "Переезд", "Переезд", Status.NEW, dateTimeTestEpic1, subtasksList);
 //        Epic epic2 = new Epic(UUID.randomUUID(), TaskType.EPIC, "Переезд2", Status.NEW, "Переезд2", subtasksList);
 
-        Subtask subtask1 = new Subtask(TaskType.SUBTASK, "тест1",
-                "Собрать коробки", Status.NEW, dateTimeTestSubtask1, 50);
-        Subtask subtask2 = new Subtask(TaskType.SUBTASK, "тест2",
-                "Упаковать кошку", Status.NEW, dateTimeTestSubtask2, 15);
+//        Subtask subtask1 = new Subtask(TaskType.SUBTASK, "тест1",
+//                "Собрать коробки", Status.NEW, dateTimeTestSubtask1, 50);
+//        Subtask subtask2 = new Subtask(TaskType.SUBTASK, "тест2",
+//                "Упаковать кошку", Status.NEW, dateTimeTestSubtask2, 15);
 //        Subtask subtask3 = new Subtask(TaskType.SUBTASK, "тест3", Status.NEW,
 //                "Сказать слова прощания", epic1.getId());
 
@@ -69,7 +68,7 @@ public class Main {
 //                                    "Упаковать кошку", Status.NEW, LocalDateTime.now(), 5));
                             break;
                         case 2:
-                            fileBackedTasksManager.addNewTask(epic1);
+//                            fileBackedTasksManager.addNewTask(epic1);
 //                            fileBackedTasksManager.addNewTask(new Epic(UUID.randomUUID(), TaskType.EPIC,
 //                                    "Переезд2", "Переезд2", Status.NEW, subtasksList));
 //                            fileBackedTasksManager.addNewTask(new Epic(UUID.randomUUID(), TaskType.EPIC,
@@ -80,12 +79,12 @@ public class Main {
                             // точно не помню как в задании, нужно их перечитать
                             // пока что это тесты для вычисления правильного сложения времени эпика
 
-                            subtask1.setEpicId(epic1.getId()); // ТЗ-7 подразумевается что епик создается до подзадачи
-
-                            subtask2.setEpicId(epic1.getId());
-
-                            fileBackedTasksManager.addNewTask(subtask1);
-                            fileBackedTasksManager.addNewTask(subtask2);
+//                            subtask1.setEpicId(epic1.getId()); // ТЗ-7 подразумевается что епик создается до подзадачи
+//
+//                            subtask2.setEpicId(epic1.getId());
+//
+//                            fileBackedTasksManager.addNewTask(subtask1);
+//                            fileBackedTasksManager.addNewTask(subtask2);
 //                            fileBackedTasksManager.addNewTask(subtask2);
 //                            fileBackedTasksManager.addNewTask(subtask3);
                             break;
@@ -155,8 +154,8 @@ public class Main {
                         case 3:
                             // Помимо id задачи который хотим заменить нужен также id эпика для обновление списка
                             // поэтому подразумевается что епик уже занесен в мапу
-                            Subtask subtaskTest2 = new Subtask(TaskType.SUBTASK, "тест1",
-                                    "Собрать коробки", Status.NEW, LocalDateTime.now(), 50, epic1.getId()); // исправить
+//                            Subtask subtaskTest2 = new Subtask(TaskType.SUBTASK, "тест1",
+//                                    "Собрать коробки", Status.NEW, LocalDateTime.now(), 50, epic1.getId()); // исправить
 //                            fileBackedTasksManager.updateSubtask(subtaskTest2);
                             break;
                     }

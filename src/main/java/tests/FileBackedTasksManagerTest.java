@@ -9,16 +9,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-//import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-/*
-4. Дополнительно для FileBackedTasksManager — проверка работы по сохранению и восстановлению состояния. Граничные условия:
-     a. Пустой список задач.
-     b. Эпик без подзадач.
-     c. Пустой список истории.
-*/
 
-class FileBackedTasksManagerTest extends TaskManagerTest {
+class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager> {
 
     private static final String sep = File.separator;
     private static final String saveTasksFilePath = String.join(sep, "src", "main", "java", "resources", "taskSaves" + ".csv");
@@ -29,19 +22,10 @@ class FileBackedTasksManagerTest extends TaskManagerTest {
     @Override
     @BeforeEach
     void setTaskManager() {
-        fManager = fileBackedTasksManager; // не могу понять зачем это нужно если все есть в таскменеджере, или чтото не до конца понимаю про наследование
+        fManager = fileBackedTasksManager;
     }
-/*
-Для каждого метода нужно проверить его работу:
-  a. Со стандартным поведением.
-  b. С пустым списком задач.
-  c. С неверным идентификатором задачи (пустой и/или несуществующий идентификатор).
- */
-
-    // TEST public List<Task> getHistoryTasks() ==========================================================
-// единственный публичный метод в FileBackedTasksManager
     @Test
-    void testGetHistoryTasksAndCheckWithMapOnMatchingWithStandardCondition() { // a. Со стандартным поведением.
+    void testGetHistoryTasksAndCheckWithMapOnMatchingWithStandardCondition() {
         boolean flag = false;
         get();
         List<Task> tasks;
@@ -56,7 +40,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void testGetHistoryTasksAndCheckWithMapOnMatchingWhenEmptyMap() { // a. Со стандартным поведением.
+    void testGetHistoryTasksAndCheckWithMapOnMatchingWhenEmptyMap() {
         clearHistory();
         boolean flag = false;
         get();

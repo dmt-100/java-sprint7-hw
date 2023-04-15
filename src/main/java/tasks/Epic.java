@@ -13,10 +13,9 @@ public class Epic extends Task {
     из пачки
 Всем привет! а у вас у всех классы Task, Subtask и Epic не имеют ссылок друг на друга? Вчера жестко потратил 2ч на то что gson пытался сделать бесконечный паровозик из моих классов Subtask и Epic, так как у Epic есть массив Subtask'ов и у Subtask есть ссылка на Epic. Как я понял, gson пытался сериализовать Epic, в котором есть Subtask'и, а у него в свою очередь ссылка Epic, и тут начинается бесконечность ) только слово transient разорвало паровоз
  */
-    private transient List<UUID> subtasks;
+    private final transient List<UUID> subtasks;
     int duration;
     private LocalDateTime endTime;
-
 
     public Epic(
             TaskType taskType,
@@ -24,9 +23,11 @@ public class Epic extends Task {
             String description,
             Status status,
             LocalDateTime startTime,
+            int duration,
             List<UUID> subtasks
     ) {
-        super(taskType, name, description, status, startTime);
+        super(taskType, name, description, status, startTime, duration);
+        endTime = startTime.plusMinutes(duration);
         this.subtasks = subtasks;
     }
 
@@ -37,13 +38,15 @@ public class Epic extends Task {
             String description,
             Status status,
             LocalDateTime startTime,
+            int duration,
             List<UUID> subtasks
     ) {
-        super(id, taskType, name, description, status, startTime);
+        super(id, taskType, name, description, status, startTime, duration);
+        endTime = startTime.plusMinutes(duration);
         this.subtasks = subtasks;
     }
 
-    public Epic( // конструктор для восстановления taskfromString()
+    public Epic( // конструктор для восстановления taskfromString() создания задачи из строки
                  UUID id,
                  TaskType taskType,
                  String name,
@@ -91,12 +94,12 @@ public class Epic extends Task {
 
     @Override
     public int getDuration() {
-        return duration;
+        return super.getDuration();
     }
 
     @Override
     public void setDuration(int duration) {
-        this.duration = duration;
+        super.setDuration(duration);
     }
 
 

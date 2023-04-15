@@ -53,20 +53,20 @@ public class Task {
         this.endTime = startTime.plusMinutes(duration);
     }
 
-    public Task( // конструктор для Эпика без duration
-            TaskType taskType,
-            String name,
-            String description,
-            Status status,
-            LocalDateTime startTime
-    ) {
-        this.taskType = taskType;
-        this.name = name;
-        this.description = description;
-        this.status = status;
-        this.startTime = startTime;
-        this.endTime = startTime.plusMinutes(duration);
-    }
+//    public Task( // конструктор для Эпика без duration
+//            TaskType taskType,
+//            String name,
+//            String description,
+//            Status status,
+//            LocalDateTime startTime
+//    ) {
+//        this.taskType = taskType;
+//        this.name = name;
+//        this.description = description;
+//        this.status = status;
+//        this.startTime = startTime;
+//        this.endTime = startTime.plusMinutes(duration);
+//    }
 
     public Task( // для восстановления taskfromString()
             UUID id,

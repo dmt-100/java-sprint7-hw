@@ -14,21 +14,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final Map<UUID, Task> tasks = new HashMap<>(); // переделать на treemap
+    private final Map<UUID, Task> tasks = new HashMap<>();
     private Set<Task> prioritizedTasks = new TreeSet<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
-    /*
-    Из условий в ТЗ-3: <Иногда для выполнения какой-нибудь масштабной задачи её лучше разбить на подзадачи (англ. subtask). Большую задачу, которая делится на подзадачи, мы будем называть эпиком (англ. epic).>
-    Не сказано что будет формироваться первыми эпик или подзадача, предложу что эпик первый, тогда стартовое время эпику устанавливается впоследсвии создания подзадачи
-     */
-
-    /* не совсем понятна логика в задании про окончание времени эпика, где сказано:
-     <а время завершения — время окончания самой поздней из задач.>, по идее время завершения должна быть сумма времени всех подзадач прибавленной к началу времени эпика или первой подзадачи, тем не менее сделал как написано в ТЗ
-    */
     @Override
     public void addNewTask(Task task) {
-        if (!task.getTaskType().equals(TaskType.EPIC)) { // условие только для тестов после убрать
+        if (!task.getTaskType().equals(TaskType.EPIC)) { // !
             task.setId(java.util.UUID.randomUUID());
         }
         try {
@@ -36,38 +28,29 @@ public class InMemoryTaskManager implements TaskManager {
                 for (Task taskInMap : tasks.values()) {
                     if (!(taskInMap.getTaskType().equals(TaskType.EPIC) || task.getTaskType().equals(TaskType.EPIC))) {
                         task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
-                        if (
-                                (taskInMap.getStartTime().isBefore(task.getStartTime())
-                                        && taskInMap.getEndTime().isAfter(task.getStartTime()))
-                                        || (taskInMap.getStartTime().isBefore(task.getEndTime()) //true
-                                        && taskInMap.getEndTime().isAfter(task.getEndTime()))
-                        ) {
-                            System.out.println("Пожалуйста выберете другое стартовое время");
+
+                        if (checkTime(task) != null) {
                             return;
                         }
+
                     }
                 }
             }
 
-            switch (task.getTaskType()) { // switch-case для удобства читаемости
+            switch (task.getTaskType()) {
                 case TASK:
-//                task.setId(java.util.UUID.randomUUID());
-//                task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
                     tasks.put(task.getId(), task);
                     System.out.println("Задача успешно добавлена");
                     break;
                 case EPIC:
-//                    task.setId(java.util.UUID.randomUUID()); // временно для тестов в abstract class TaskManager после убрать
                     tasks.put(task.getId(), task);
                     System.out.println("Эпик успешно добавлен");
                     break;
                 case SUBTASK:
-//                task.setId(java.util.UUID.randomUUID());
-//                task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
                     tasks.put(task.getId(), task);
                     System.out.println("Подзадача успешно добавлена");
 
-                    Epic epic = (Epic) tasks.get(task.getEpicId()); // нашел решение только через кастинг
+                    Epic epic = (Epic) tasks.get(task.getEpicId());
                     epic.setSubtasks(task.getId());
                     if (epic.getStartTime() == null) {
                         epic.setStartTime(task.getStartTime());
@@ -80,6 +63,21 @@ public class InMemoryTaskManager implements TaskManager {
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
+    }
+
+    private String checkTime(Task task) {
+        String anotherTimeToPick = null;
+        for (Task taskInMap : tasks.values()) {
+            if (
+                    (taskInMap.getStartTime().isBefore(task.getStartTime())
+                            && taskInMap.getEndTime().isAfter(task.getStartTime()))
+                            || (taskInMap.getStartTime().isBefore(task.getEndTime())
+                            && taskInMap.getEndTime().isAfter(task.getEndTime()))
+            ) {
+                System.out.println("Пожалуйста выберете другое стартовое время");
+            }
+        }
+        return anotherTimeToPick;
     }
 
     // case 2: Получение списка всех задач.-------------------------------------
@@ -98,18 +96,17 @@ public class InMemoryTaskManager implements TaskManager {
         return list;
     }
 
-
     // case 3: Удаление всех задач по типу.---------------------------------------
     @Override
     public void removeTasksByTasktype(TaskType taskType) {
         if (taskType.equals(TaskType.SUBTASK)) {
-            tasks.values().stream().forEach(t -> t.getSubtasks().clear()); // удаление списка подзадач у Эпиков
-            tasks.values().stream().forEach(t -> historyManager.remove(t.getId())); // удаление подзадач в истории
+            tasks.values().stream().forEach(t -> t.getSubtasks().clear());
+            tasks.values().stream().forEach(t -> historyManager.remove(t.getId()));
 
             LocalDateTime defaultTime = LocalDateTime.parse("2000-01-01 00:00:00",
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.US)); // 2014-12-22T05:10:30
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.US));
 
-            tasks.values().stream() // обнуление времени у эпиков после удаления подзадач
+            tasks.values().stream()
                     .filter(t -> t.getTaskType().equals(TaskType.EPIC))
                     .forEach(t -> t.setStartTime(defaultTime));
             tasks.values().stream()
@@ -123,7 +120,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     }
 
-    // ТЗ-4 Работает с History
     // case 4:get методы-------------------------------------------------------------
     @Override
     public Task getTask(UUID idInput) {
@@ -138,12 +134,10 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             System.out.println("Неверный идентификатор задачи");
         }
-
         return task;
     }
 
-    // case 5: Обновление. Новая версия объекта с верным идентификатором передаётся в виде параметра.
-// "Это значит что в объекте Task заполнено поле id и мы можем его использовать для обновления объекта. поэтому во всех трёх методах должен на вход подаваться только объект задачи"
+    // case 5: Обновление.
     @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
@@ -163,9 +157,7 @@ public class InMemoryTaskManager implements TaskManager {
                 tasks.get(id).removeSubtask(id);
                 tasks.get(id).cleanSubtaskIds();
                 for (Task subtask : getSubtasksFromEpic(id)) {
-                    if (tasks.containsKey(subtask.getId())) {
-                        tasks.remove(subtask.getId()); // удаление сабтасков епика из мапы
-                    }
+                    tasks.remove(subtask.getId());
                 }
             }
 
@@ -174,11 +166,6 @@ public class InMemoryTaskManager implements TaskManager {
             historyManager.remove(id);
             System.out.println("Задача удалена");
 
-//        tasks.entrySet().stream()
-//                .filter(t -> t.getKey().equals(id))
-//                .filter(t -> t.getValue().getTaskType().equals(TaskType.SUBTASK))
-//                .map(t -> t.getValue().getTaskType().equals(TaskType.SUBTASK))
-//                .forEach(updateEpicStatus(id));
             if (tasks.containsKey(id)) {
                 if (tasks.get(id).getTaskType().equals(TaskType.SUBTASK)) {
                     for (Task value : tasks.values()) {
@@ -188,7 +175,6 @@ public class InMemoryTaskManager implements TaskManager {
                     }
                 }
             }
-
         } catch (NullPointerException e) {
             throw new NullPointerException("Неверный идентификатор задачи");
         }
@@ -198,6 +184,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void changeStatusTask(UUID id, Status status) {
         try {
+            if (tasks.get(id).getTaskType().equals(TaskType.EPIC)) {
+                System.out.println("Статус Эпика зависит от статусов его подзадач(и) и самому изменить его невозможно");
+                return;
+            }
             if (tasks.get(id).getTaskType().equals(TaskType.SUBTASK)) {
                 updateEpicStatus(tasks.get(id).getEpicId());
             }
@@ -216,14 +206,10 @@ public class InMemoryTaskManager implements TaskManager {
             if (tasks.isEmpty()) {
                 System.out.println("Мапа пуста");
             } else {
-//                for (UUID id : tasks.keySet()) { // ТЗ-7 после удалить
-//                    if (tasks.get(id).getId().equals(epicId)) {
-                for (UUID subtaskUUID : tasks.get(epicId).getSubtasks()) { // итерация листа подзадач эпика
-                    historyManager.add(tasks.get(subtaskUUID)); // добавляем в историю каждую подзадачу эпика (так как просматриваются все подзадачи)
+                for (UUID subtaskUUID : tasks.get(epicId).getSubtasks()) {
+                    historyManager.add(tasks.get(subtaskUUID));
                     subtasks.add(tasks.get(subtaskUUID));
                 }
-//                    }
-//                }
             }
         } catch (NullPointerException e) {
             throw new NullPointerException("Неверный идентификатор задачи");
@@ -231,15 +217,15 @@ public class InMemoryTaskManager implements TaskManager {
         return subtasks;
     }
 
-    // case 9:
+    // case 9: получение списка просмотренных задач
     @Override
     public List<Task> getHistory() {
         return historyManager.getTasksInHistory();
     }
 
-    // case 11:
+    // case 11: сортировка задач по стартовому времени
     @Override
-    public void prioritizeTasks() { // ТЗ-7 так как сет, то те задачи у которых одинаковое время будут перезаписываться, что бы этого избежать нужно чтобы стартовое время отличалось или просто вводить по одной задачи в мейне или заменить .now()
+    public void prioritizeTasks() {
         if (tasks.size() > 1) {
             prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
             prioritizedTasks.addAll(Stream.of(tasks.values())
@@ -266,54 +252,41 @@ public class InMemoryTaskManager implements TaskManager {
     }
 // ==========================   Getters End   ==========================
 
+    public void updateEpicStatus(UUID id) { // !
 
-    // метод только этого класса
-    public void updateEpicStatus(UUID id) {
-        if (tasks.containsKey(id)) {
-            boolean inProgress = true;
-            // если у эпика нет подзадач или все они имеют статус NEW, то статус должен быть NEW.
-            // *если у эпика нет подзадач
-            if (tasks.get(id).getSubtasks().size() == 0) {
-                tasks.get(id).setStatus(Status.NEW);
-                inProgress = false;
+        boolean inProgress = false;
+
+        int counterNew = tasks.get(id).getSubtasks().size();
+
+        for (Task task : tasks.values()) {
+            if (task.getStatus().equals(Status.NEW)) {
+                counterNew++;
             }
-            // *или все они имеют статус NEW
-            if (tasks.get(id).getSubtasks().size() != 0) { // проверить на ноль
-                int counterNew = 0;
+        }
 
-                for (int i = 0; i < tasks.get(id).getSubtasks().size(); i++) { // итерация листа с id подзадач
-                    if (tasks.get(tasks.get(id).getSubtasks().get(i)).getStatus().equals(Status.NEW)) {
-                        counterNew++;
-                    }
-                }
-                if (tasks.get(id).getSubtasks().size() == counterNew) { // если 0? то значит новая
-                    tasks.get(id).setStatus(Status.NEW);
-                    inProgress = false;
+        if (tasks.get(id).getSubtasks().size() == counterNew) {
+            tasks.get(id).setStatus(Status.NEW);
+            inProgress = true;
+        }
+
+
+        if (tasks.get(id).getSubtasks().size() != 0) {
+            int counterDone = 0;
+            for (int i = 0; i < tasks.get(id).getSubtasks().size(); i++) {
+                if (tasks.get(tasks.get(id).getSubtasks().get(i)).getStatus().equals(Status.DONE)) {
+                    counterDone++;
                 }
             }
-
-            // если все подзадачи имеют статус DONE, то и эпик считается завершённым — со статусом DONE.
-            if (tasks.get(id).getSubtasks().size() != 0) { // проверить на ноль
-                int counterDone = 0;
-                for (int i = 0; i < tasks.get(id).getSubtasks().size(); i++) { // перебор листа с id подзадач
-                    if (tasks.get(tasks.get(id).getSubtasks().get(i)).getStatus().equals(Status.DONE)) {
-                        counterDone++;
-                    }
-                }
-                if (tasks.get(id).getSubtasks().size() == counterDone) {
-                    tasks.get(id).setStatus(Status.DONE);
-                    inProgress = false;
-                }
-
-                // во всех остальных случаях статус должен быть IN_PROGRESS
-                if (inProgress) {
-                    tasks.get(id).setStatus(Status.IN_PROGRESS);
-                }
-                tasks.put(tasks.get(id).getId(), tasks.get(id));
-                System.out.println("Обновление списка эпика прошло успешно");
+            if (tasks.get(id).getSubtasks().size() == counterDone) {
+                tasks.get(id).setStatus(Status.DONE);
+                inProgress = true;
             }
-        } else {
-            System.out.println("Епик с таким id не найден");
+
+            if (!inProgress) {
+                tasks.get(id).setStatus(Status.IN_PROGRESS);
+            }
+            tasks.put(tasks.get(id).getId(), tasks.get(id));
+            System.out.println("Обновление списка эпика прошло успешно");
         }
     }
 }

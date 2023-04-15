@@ -19,16 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
 
-    // =========== это посоветовали в пачке ===========
     protected T taskManager;
 
     abstract void setTaskManager();
-// ================================================
-// но так и не совсем понял как правильно реализовать
-    // также насколько помню там писали что обычные геттеры без логики не требовались в тестах
 
-    // https://i.ibb.co/BCb09qt/image.png
-    // почти 100 по всем
     private static final String sep = File.separator;
     private static final String saveTasksFilePath = String.join(sep, "src", "main", "java", "resources", "taskSaves" + ".csv");
     private static File file = new File(saveTasksFilePath);
@@ -59,6 +53,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
             "Переезд",
             Status.NEW,
             LocalDateTime.parse("2000-01-01T02:00:00"),
+            0,
             subtasks);
 
 
@@ -311,6 +306,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 "Переезд",
                 Status.NEW,
                 LocalDateTime.parse("2000-01-01T00:00:00"),
+                0,
                 subtasks);
         NullPointerException ex = assertThrows(NullPointerException.class, () -> {
             fileBackedTasksManager.changeStatusTask(epic.getId(), Status.IN_PROGRESS);

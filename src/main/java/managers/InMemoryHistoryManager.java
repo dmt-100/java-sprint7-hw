@@ -7,9 +7,9 @@ import main.java.tasks.Task;
 import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private final CustomLinkedList<Task> customLinkedList = new CustomLinkedList<>(); // класс с нодами
+    private final CustomLinkedList<Task> customLinkedList = new CustomLinkedList<>();
 
-    public void add(Task task) {        // case 4, case 8
+    public void add(Task task) {
         if (task != null) {
             customLinkedList.linkLast(task);
             customLinkedList.removeNode(customLinkedList.customLinkedNodes.get(task.getId()));
@@ -43,10 +43,9 @@ class CustomLinkedList<Task> {
     protected Map<UUID, Node<Task>> customLinkedNodes = new HashMap<>();
     private Node<Task> head;
     protected Node<Task> tail;
-    private Node<Task> temp; // для повторного использования getCustomLinkedList()
+    private Node<Task> temp;
 
     public void linkLast(Task task) {
-//        if (tail != null) { // гдето на тестах пришлось убрать, вроде как не нужна, удалить потом
         final Node<Task> oldTail = tail;
         final Node<Task> newNode = new Node<>(oldTail, task, null);
         tail = newNode;
@@ -56,7 +55,6 @@ class CustomLinkedList<Task> {
         } else {
             oldTail.next = newNode;
         }
-//        }
     }
 
     public ArrayList<Task> getTasksByNodes() {
@@ -101,22 +99,3 @@ class CustomLinkedList<Task> {
         return customLinkedNodes;
     }
 }
-//    public void removeNode(Node<Task> node) { // косячный убил полдня на поиск ошибки *head и tail нули
-//        if (node.next == null && node.prev == null) {
-//            head = null;
-//            tail = null;
-//        } else {
-//            if (node.prev == null) {
-//                head = node.next;
-//            } else {
-//                node.prev.next = node.next;
-//                node.prev = null;
-//            }
-//            if (node.next == null) {
-//                tail = node.prev;
-//            } else {
-//                node.next.prev = node.prev;
-//                node.next = null;
-//            }
-//        }
-//    }

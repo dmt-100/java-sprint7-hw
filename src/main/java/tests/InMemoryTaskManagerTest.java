@@ -16,8 +16,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
-class InMemoryTaskManagerTest extends TaskManagerTest {
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
 
