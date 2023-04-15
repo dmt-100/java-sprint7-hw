@@ -57,6 +57,12 @@ public class Subtask extends Task {
         return epicId;
     }
 
+    @Override
+    public int getDuration() {
+        return super.getDuration();
+    }
+
+    @Override
     public void setEpicId(UUID epicId) {
         this.epicId = epicId;
     }

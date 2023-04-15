@@ -20,9 +20,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addNewTask(Task task) {
-        if (!task.getTaskType().equals(TaskType.EPIC)) { // !
-            task.setId(java.util.UUID.randomUUID());
-        }
+        task.setId(java.util.UUID.randomUUID());
         try {
             if (!tasks.isEmpty()) {
                 for (Task taskInMap : tasks.values()) {
@@ -184,14 +182,17 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void changeStatusTask(UUID id, Status status) {
         try {
+
             if (tasks.get(id).getTaskType().equals(TaskType.EPIC)) {
-                System.out.println("Статус Эпика зависит от статусов его подзадач(и) и самому изменить его невозможно");
+                System.out.println("Статус Эпика зависит от статусов его подзадач(и) и самому изменить невозможно");
                 return;
             }
             if (tasks.get(id).getTaskType().equals(TaskType.SUBTASK)) {
-                updateEpicStatus(tasks.get(id).getEpicId());
+                tasks.get(id).setStatus(status);
+                updateEpicStatus(tasks.get(id).getId());
+            } else {
+                tasks.get(id).setStatus(status);
             }
-            tasks.get(id).setStatus(status);
             System.out.println("Статус изменён");
         } catch (NullPointerException e) {
             throw new NullPointerException("Неверный идентификатор задачи");
@@ -252,41 +253,47 @@ public class InMemoryTaskManager implements TaskManager {
     }
 // ==========================   Getters End   ==========================
 
-    public void updateEpicStatus(UUID id) { // !
+    public void updateEpicStatus(UUID id) {
+        UUID epicId = tasks.get(id).getEpicId();
+        List<UUID> uuidsSubtasks = new ArrayList<>(tasks.get(epicId).getSubtasks());
+//        ArrayList<Status> subtasks = new  ArrayList<>();
+        int done = 0;
+        int inProgress = 0;
+        int newTask = 0;
 
-        boolean inProgress = false;
+        for (UUID uuidsSubtask : uuidsSubtasks) {
 
-        int counterNew = tasks.get(id).getSubtasks().size();
-
-        for (Task task : tasks.values()) {
-            if (task.getStatus().equals(Status.NEW)) {
-                counterNew++;
+            Status status = tasks.get(uuidsSubtask).getStatus();
+            switch (status) {
+                case NEW:
+                    newTask++;
+                    break;
+                case IN_PROGRESS:
+                    inProgress++;
+                    break;
+                case DONE:
+                    done++;
+                    break;
             }
         }
 
-        if (tasks.get(id).getSubtasks().size() == counterNew) {
-            tasks.get(id).setStatus(Status.NEW);
-            inProgress = true;
+
+        if (newTask < tasks.get(epicId).getSubtasks().size()) {
+            tasks.get(epicId).setStatus(Status.IN_PROGRESS);
+        } else if (done == tasks.get(epicId).getSubtasks().size()) {
+            tasks.get(epicId).setStatus(Status.DONE);
+        } else {
+            tasks.get(epicId).setStatus(Status.NEW);
         }
-
-
-        if (tasks.get(id).getSubtasks().size() != 0) {
-            int counterDone = 0;
-            for (int i = 0; i < tasks.get(id).getSubtasks().size(); i++) {
-                if (tasks.get(tasks.get(id).getSubtasks().get(i)).getStatus().equals(Status.DONE)) {
-                    counterDone++;
-                }
-            }
-            if (tasks.get(id).getSubtasks().size() == counterDone) {
-                tasks.get(id).setStatus(Status.DONE);
-                inProgress = true;
-            }
-
-            if (!inProgress) {
-                tasks.get(id).setStatus(Status.IN_PROGRESS);
-            }
-            tasks.put(tasks.get(id).getId(), tasks.get(id));
-            System.out.println("Обновление списка эпика прошло успешно");
-        }
+        System.out.println("Обновление списка эпика прошло успешно");
     }
 }
+
+
+
+
+
+
+
+
+

@@ -44,17 +44,18 @@ abstract class TaskManagerTest<T extends TaskManager> {
             "Собрать коробки",
             Status.NEW,
             LocalDateTime.parse("2000-01-01T00:00:00"),
-            50);
+            50
+    );
 
     Task epic = new Epic(
-            epicUuid,
             TaskType.EPIC,
             "Переезд",
             "Переезд",
             Status.NEW,
             LocalDateTime.parse("2000-01-01T02:00:00"),
             0,
-            subtasks);
+            subtasks
+    );
 
 
     Task subtask = new Subtask(
@@ -64,7 +65,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
             Status.NEW,
             LocalDateTime.parse("2000-01-01T04:00:00"),
             50,
-            epicUuid);
+            epicUuid
+    );
 
 
     Task taskUpdate;
@@ -77,23 +79,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void createFirst() {
         fileBackedTasksManager.addNewTask(task);
         fileBackedTasksManager.addNewTask(epic);
+        subtask.setEpicId(epic.getId());
         fileBackedTasksManager.addNewTask(subtask);
         epic.setSubtasks(subtask.getId());
     }
-
-    // 1) все в порядке, задача достается,
 
     void get() {
         fileBackedTasksManager.getTask(task.getId());
         fileBackedTasksManager.getTask(epic.getId());
         fileBackedTasksManager.getTask(subtask.getId());
-    }
-
-    // 1) все в порядке, задача достается,
-    void createThird() {
-        fileBackedTasksManager.addNewTask(task);
-        fileBackedTasksManager.addNewTask(epic);
-//        fileBackedTasksManager.addNewTask(subtask);
     }
 
     @AfterEach
@@ -162,7 +156,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void testCase3RemoveTasksByTasktypeWithStandartCondition() {  // a. Со стандартным поведением. (из ТЗ)
         assertEquals(TaskType.EPIC, fileBackedTasksManager.getTasks().get(epic.getId()).getTaskType());
-
     }
 
     @Test
@@ -180,7 +173,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void testCase4GetTaskWithStandardCondition() { // 1) все в порядке, задача достается,
         Task taskActual = fileBackedTasksManager.getTask(task.getId());
         assertEquals(task, taskActual);
-
     }
 
     @Test
@@ -284,7 +276,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
         fileBackedTasksManager.changeStatusTask(task.getId(), Status.IN_PROGRESS);
         assertEquals(Status.IN_PROGRESS, fileBackedTasksManager.getTasks().get(task.getId()).getStatus());
     }
-
 
     @Test
     void testCase7changeStatusTaskWhenEmptyMap() { // b. С пустым списком задач.

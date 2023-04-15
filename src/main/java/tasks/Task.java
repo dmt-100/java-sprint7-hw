@@ -229,6 +229,9 @@ public class Task {
         return null;
     }
 
+    public void setEpicId(UUID epicId) {
+    }
+
     public void removeSubtask(UUID id) {
     }
 
