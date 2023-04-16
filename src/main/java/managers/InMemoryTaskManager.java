@@ -27,7 +27,7 @@ public class InMemoryTaskManager implements TaskManager {
                     if (!(taskInMap.getTaskType().equals(TaskType.EPIC) || task.getTaskType().equals(TaskType.EPIC))) {
                         task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
 
-                        if (checkTime(task)) {
+                        if (checkTimeCrossing(task.getStartTime(), task.getEndTime())) {
                             return;
                         }
                     }
@@ -37,15 +37,15 @@ public class InMemoryTaskManager implements TaskManager {
             switch (task.getTaskType()) {
                 case TASK:
                     tasks.put(task.getId(), task);
-                    System.out.println("Задача успешно добавлена");
+                    System.out.println("Задача: " + task.getName() + ", успешно добавлена");
                     break;
                 case EPIC:
                     tasks.put(task.getId(), task);
-                    System.out.println("Эпик успешно добавлен");
+                    System.out.println("Эпик: " + task.getName() + ", успешно добавлен");
                     break;
                 case SUBTASK:
                     tasks.put(task.getId(), task);
-                    System.out.println("Подзадача успешно добавлена");
+                    System.out.println("Подзадача: " + task.getName() + ", успешно добавлена");
 
                     Epic epic = (Epic) tasks.get(task.getEpicId());
                     epic.setSubtasks(task.getId());
@@ -62,20 +62,26 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private boolean checkTime(Task task) {
-        boolean isTimeCrossing = false;
+    private boolean checkTimeCrossing(LocalDateTime startTime, LocalDateTime endTime) {
+
         for (Task taskInMap : tasks.values()) {
-            if (
-                    (taskInMap.getStartTime().isBefore(task.getStartTime())
-                            && taskInMap.getEndTime().isAfter(task.getStartTime()))
-                            || (taskInMap.getStartTime().isBefore(task.getEndTime())
-                            && taskInMap.getEndTime().isAfter(task.getEndTime()))
-            ) {
+            LocalDateTime taskStartTime = taskInMap.getStartTime();
+            LocalDateTime taskEndTime = taskInMap.getEndTime();
+
+            if (taskStartTime.isEqual(startTime)   // чтобы не городить вывел на равенство отдельно
+                    || taskEndTime.isEqual(endTime)) {
                 System.out.println("Пожалуйста выберете другое стартовое время");
-                isTimeCrossing = true;
+                return true;
+            }
+            if ((taskStartTime.isBefore(startTime)
+                    && taskEndTime.isAfter(startTime))
+                    || (taskStartTime.isBefore(endTime)
+                    && taskEndTime.isAfter(endTime))) {
+                System.out.println("Пожалуйста выберете другое стартовое время");
+                return true;
             }
         }
-        return isTimeCrossing;
+        return false;
     }
 
     // case 2: Получение списка всех задач.-------------------------------------
@@ -281,7 +287,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasksWithStatusDone == subtasksInEpic) {
             tasks.get(epicId).setStatus(Status.DONE);
         }
-        System.out.println("Обновление списка эпика прошло успешно");
+        System.out.println("Обновление статуса эпика прошло успешно");
     }
 }
 

@@ -11,8 +11,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,9 +41,20 @@ abstract class TaskManagerTest<T extends TaskManager> {
     UUID testUuid = UUID.fromString("00000000-0000-48c2-bb4a-f4cf88f18e23");
     UUID wrongUuid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
+
+
     Task task = new Task(
             TaskType.TASK,
-            "Переезд",
+            "Task1",
+            "Собрать коробки",
+            Status.NEW,
+            LocalDateTime.parse("2000-01-01T00:00:00"),
+            50
+    );
+
+    Task task2 = new Task(
+            TaskType.TASK,
+            "Task2",
             "Собрать коробки",
             Status.NEW,
             LocalDateTime.parse("2000-01-01T00:00:00"),
@@ -49,7 +63,18 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     Task epic = new Epic(
             TaskType.EPIC,
+            "Эпик1",
             "Переезд",
+            Status.NEW,
+            LocalDateTime.parse("2000-01-01T02:00:00"),
+            0,
+            subtasks
+    );
+
+
+    Task epic2 = new Epic(
+            TaskType.EPIC,
+            "Эпик1",
             "Переезд",
             Status.NEW,
             LocalDateTime.parse("2000-01-01T02:00:00"),
@@ -60,7 +85,17 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     Task subtask = new Subtask(
             TaskType.SUBTASK,
-            "тест1",
+            "Subtask1",
+            "Собрать коробки",
+            Status.NEW,
+            LocalDateTime.parse("2000-01-01T04:00:00"),
+            50,
+            epicUuid
+    );
+
+    Task subtask2 = new Subtask(
+            TaskType.SUBTASK,
+            "Subtask1",
             "Собрать коробки",
             Status.NEW,
             LocalDateTime.parse("2000-01-01T04:00:00"),
@@ -104,6 +139,124 @@ abstract class TaskManagerTest<T extends TaskManager> {
         fileBackedTasksManager.getTasks().clear();
     }
 
+// =================================== /case TimeCrossing/ private boolean checkTimeCrossing(Task task)=============
+
+    LocalDateTime dateTimeTestTask1 = LocalDateTime.parse("2000-01-01T00:01:00");
+    LocalDateTime dateTimeTestTask2 = LocalDateTime.parse("2000-01-01T00:00:00");
+
+    LocalDateTime dateTimeTestEpic1 = LocalDateTime.parse("2000-01-01T00:00:00");
+    LocalDateTime dateTimeTestSubtask1 = LocalDateTime.parse("2000-01-01T00:00:00");
+    LocalDateTime dateTimeTestSubtask2 = LocalDateTime.parse("2000-01-01T01:00:00");
+
+    @Test
+    void checkTimeCrossingTestTaskByStartTime() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        fileBackedTasksManager.addNewTask(task2);
+
+        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String actualOutput = outContent.toString().trim();
+
+        assertEquals(expectedOutput, actualOutput);
+    }
+
+    @Test
+    void checkTimeCrossingTestTaskByEndTime() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        task2.setStartTime(dateTimeTestTask1);
+        fileBackedTasksManager.addNewTask(task2);
+
+        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String actualOutput = outContent.toString().trim();
+
+        assertEquals(expectedOutput, actualOutput);
+    }
+    @Test
+    void checkTimeCrossingTestTaskBetweenTime() { // между началом и концом
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        task2.setStartTime(dateTimeTestTask1); // +1 минута
+        task2.setDuration(40); // тоесть в промежутке времени первой задачи task1
+        fileBackedTasksManager.addNewTask(task2);
+
+        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String actualOutput = outContent.toString().trim();
+
+        assertEquals(expectedOutput, actualOutput);
+    }
+
+
+    @Test
+    void checkTimeCrossingSubtaskTestSubtaskByStartTime() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        fileBackedTasksManager.addNewTask(subtask2);
+
+        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String actualOutput = outContent.toString().trim();
+
+        assertEquals(expectedOutput, actualOutput);
+    }
+
+    @Test
+    void checkTimeCrossingSubtaskTestTaskByEndTime() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        subtask2.setStartTime(dateTimeTestTask1);
+        fileBackedTasksManager.addNewTask(subtask2);
+
+        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String actualOutput = outContent.toString().trim();
+
+        assertEquals(expectedOutput, actualOutput);
+    }
+
+    @Test
+    void checkTimeCrossingSubtaskTaskBetweenTime() { // между началом и концом
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        subtask2.setStartTime(dateTimeTestTask1); // +1 минута
+        subtask2.setDuration(40); // тоесть в промежутке времени первой задачи task1
+        fileBackedTasksManager.addNewTask(subtask2);
+
+        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String actualOutput = outContent.toString().trim();
+
+        assertEquals(expectedOutput, actualOutput);
+    }
+
+    @Test
+    void checkTimeCrossingEpicEndTime() { // конечное время эпика задается суммой duration сабтасков
+        clearHistory();
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        epic.setStartTime(dateTimeTestEpic1); // "2000-01-01T00:00:00"
+        subtask.setStartTime(dateTimeTestEpic1); // "2000-01-01T00:00:00"
+        subtask2.setStartTime(dateTimeTestSubtask2); // "2000-01-01T01:00:00" то есть конечное время у эпика будет 1 час плюс 50 минут duration
+
+        fileBackedTasksManager.addNewTask(epic);
+
+        subtask.setEpicId(epic.getId());
+        subtask2.setEpicId(epic.getId());
+        fileBackedTasksManager.addNewTask(subtask);
+        fileBackedTasksManager.addNewTask(subtask2);
+        epic.setSubtasks(subtask.getId());
+        epic.setSubtasks(subtask2.getId());
+
+        LocalDateTime expectedEpicEndTime = fileBackedTasksManager.getTasks().get(epic.getId()).getEndTime();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String expected = expectedEpicEndTime.format(dateTimeFormatter);
+
+        assertEquals("2000-01-01 01:40:00", expected);
+    }
 
     // =================================== /case 1/ void addNewTask(Task task) ===================================
 /*
@@ -371,111 +524,3 @@ abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(new ArrayList<>(), tasks);
     }
 }
-
-/*
-  a. Со стандартным поведением. (из ТЗ)
-  b. С пустым списком задач.
-  c. С неверным идентификатором задачи (пустой и/или несуществующий идентификатор).
-
-например, если тестировать метод getTask(Task task),
-то должно быть 3 теста на этот метод,
-1) все в порядке, задача достается,
-2) список пуст, соответветственно задача не достанется,
-3) в списке что-то есть, но нет нашей задачи, задача не достанется
-и так по каждому методу TaskManager
- */
-
-/*
-     1.    void addNewTask(Task task);
-     2.    List<Task> getAllTasksByTaskType(TaskType taskType);
-     3.    void removeTasksByTasktype(TaskType taskType);
-     4.    Task getTask(UUID taskId);
-     5.    void updateTask(Task task);
-     6.    void removeTaskById(UUID id);
-     7.    void changeStatusTask(UUID id, Status status);
-     8.    List<Task> getSubtasksFromEpic(UUID epicId);
-     9.    void updateEpicStatus(UUID epicId);
-     10.    List<Task> getHistory();
-     11.    Map<UUID, Task> getTasks();
-     12.    Set<Task> getPrioritizedTasks();
-*/
-
-/*
-  a. Со стандартным поведением. (из ТЗ)
-  b. С пустым списком задач.
-  c. С неверным идентификатором задачи (пустой и/или несуществующий идентификатор).
- */
-    //    public List<Task> getAllTasksByTaskType(TaskType taskType) {
-//        List<Task> list = tasks.entrySet().stream()
-//                .filter(t -> t.getValue().getTaskType().equals(taskType))
-//                .map(Map.Entry::getValue)
-//                .collect(Collectors.toList());
-//        return list;
-//    }
-/*
-Для каждого метода нужно проверить его работу:
-  a. Со стандартным поведением.
-  b. С пустым списком задач.
-  c. С неверным идентификатором задачи (пустой и/или несуществующий идентификатор).
- */
-//    @Test
-//    void getTaskById() {
-//    }
-//
-//    @Test
-//    void updateTask() {
-//    }
-//
-//    @Test
-//    void removeTaskById() {
-//    }
-//
-//    @Test
-//    void changeStatusTask() {
-//    }
-//
-//    @Test
-//    void getSubtaskList() {
-//    }
-//
-//    @Test
-//    void updateEpicStatus() {
-//    }
-//
-//    @Test
-//    void getHistory() {
-//    }
-//
-//    @Test
-//    void getTasks() {
-//
-//    }
-
-/*
-    void addNewTask(Task task);
-
-    // case 2: Получение списка всех задач.-------------------------------------
-    List<Task> getAllTasksByTaskType(TaskType taskType);
-
-    void removeTasksByTasktype(TaskType taskType);
-
-    Task getTask(UUID taskId);
-
-    void updateTask(Task task);
-
-    void removeTaskById(UUID id);
-
-    void changeStatusTask(UUID id, Status status);
-
-
-    List<Task> getSubtasksFromEpic(UUID epicId);
-
-    void updateEpicStatus(UUID epicId);
-
-    List<Task> getHistory();  // history
-
-    Set<Task> getPrioritizedTasks();  // case 11
-    
-    Map<UUID, Task> getTasks(); // геттер
-
- */
