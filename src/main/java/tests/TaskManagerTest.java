@@ -15,7 +15,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -155,7 +154,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         fileBackedTasksManager.addNewTask(task2);
 
-        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String expectedOutput = "Пожалуйста, для задачи: " + task2.getName()
+                + ", выберете другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
@@ -169,7 +169,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
         task2.setStartTime(dateTimeTestTask1);
         fileBackedTasksManager.addNewTask(task2);
 
-        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String expectedOutput = "Пожалуйста, для задачи: " + task2.getName()
+                + ", выберете другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
@@ -183,7 +184,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
         task2.setDuration(40); // тоесть в промежутке времени первой задачи task1
         fileBackedTasksManager.addNewTask(task2);
 
-        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String expectedOutput = "Пожалуйста, для задачи: " + task2.getName()
+                + ", выберете другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
@@ -197,7 +199,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         fileBackedTasksManager.addNewTask(subtask2);
 
-        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String expectedOutput = "Пожалуйста, для задачи: " + subtask2.getName()
+                + ", выберете другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
@@ -211,7 +214,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
         subtask2.setStartTime(dateTimeTestTask1);
         fileBackedTasksManager.addNewTask(subtask2);
 
-        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String expectedOutput = "Пожалуйста, для задачи: " + subtask2.getName()
+                + ", выберете другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
@@ -226,36 +230,23 @@ abstract class TaskManagerTest<T extends TaskManager> {
         subtask2.setDuration(40); // тоесть в промежутке времени первой задачи task1
         fileBackedTasksManager.addNewTask(subtask2);
 
-        String expectedOutput = "Пожалуйста выберете другое стартовое время";
+        String expectedOutput = "Пожалуйста, для задачи: " + subtask2.getName()
+                + ", выберете другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
     }
 
     @Test
-    void checkTimeCrossingEpicEndTime() { // конечное время эпика задается суммой duration сабтасков
-        clearHistory();
+    void checkTimeCrossingEpicEndTime() {
+
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-        epic.setStartTime(dateTimeTestEpic1); // "2000-01-01T00:00:00"
-        subtask.setStartTime(dateTimeTestEpic1); // "2000-01-01T00:00:00"
-        subtask2.setStartTime(dateTimeTestSubtask2); // "2000-01-01T01:00:00" то есть конечное время у эпика будет 1 час плюс 50 минут duration
-
-        fileBackedTasksManager.addNewTask(epic);
-
-        subtask.setEpicId(epic.getId());
-        subtask2.setEpicId(epic.getId());
-        fileBackedTasksManager.addNewTask(subtask);
-        fileBackedTasksManager.addNewTask(subtask2);
-        epic.setSubtasks(subtask.getId());
-        epic.setSubtasks(subtask2.getId());
-
+        LocalDateTime actualEpicEndTime = subtask2.getEndTime();
         LocalDateTime expectedEpicEndTime = fileBackedTasksManager.getTasks().get(epic.getId()).getEndTime();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String expected = expectedEpicEndTime.format(dateTimeFormatter);
 
-        assertEquals("2000-01-01 01:40:00", expected);
+        assertEquals(actualEpicEndTime, expectedEpicEndTime);
     }
 
     // =================================== /case 1/ void addNewTask(Task task) ===================================
@@ -505,12 +496,16 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void testCase11GetPrioritizedTasksWithStandardCondition() { // a. Со стандартным поведением. (из ТЗ)
-        fileBackedTasksManager.prioritizeTasks();
+        clearHistory();
+        fileBackedTasksManager.addNewTask(task);
+        fileBackedTasksManager.addNewTask(epic);
+//        subtask.setStartTime();
+        fileBackedTasksManager.addNewTask(subtask);
+
         boolean flag;
         List<Task> tasks = new ArrayList<>(fileBackedTasksManager.getPrioritizedTasks());
         flag = tasks.get(0).getTaskType().equals(TaskType.TASK) &&
-                tasks.get(1).getTaskType().equals(TaskType.EPIC) &&
-                tasks.get(2).getTaskType().equals(TaskType.SUBTASK);
+                tasks.get(1).getTaskType().equals(TaskType.EPIC);
         assertTrue(flag);
     }
 

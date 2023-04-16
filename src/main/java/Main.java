@@ -26,7 +26,7 @@ public class Main {
 
         LocalDateTime dateTimeTestEpic1 = LocalDateTime.parse("2000-01-01T03:00:00");
         LocalDateTime dateTimeTestSubtask1 = LocalDateTime.parse("2000-01-01T04:00:00");
-        LocalDateTime dateTimeTestSubtask2 = LocalDateTime.parse("2000-01-01T05:00:00");
+        LocalDateTime dateTimeTestSubtask2 = LocalDateTime.parse("2000-01-01T04:40:00");
 
         UUID epicUuid = UUID.fromString("11111111-d496-48c2-bb4a-f4cf88f18e23");
 //        UUID subtask1Uuid = UUID.fromString("22222222-d496-48c2-bb4a-f4cf88f18e23");
@@ -67,7 +67,7 @@ public class Main {
 
         Subtask subtask1 = new Subtask(
                 TaskType.SUBTASK,
-                "тест1",
+                "Подзадача1",
                 "Собрать коробки",
                 Status.NEW,
                 dateTimeTestSubtask1,
@@ -77,7 +77,7 @@ public class Main {
 
         Subtask subtask2 = new Subtask(
                 TaskType.SUBTASK,
-                "тест2",
+                "Подзадача2",
                 "Упаковать кошку",
                 Status.NEW,
                 dateTimeTestSubtask2,

@@ -21,41 +21,63 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addNewTask(Task task) {
         task.setId(java.util.UUID.randomUUID());
+
+        LocalDateTime startTime = task.getStartTime();
+        LocalDateTime endTime = task.getEndTime();
+
+        TaskType taskType = task.getTaskType();
+
+        if (!taskType.equals(TaskType.EPIC)) {
+            task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
+
+        } else {
+            task.setEndTime(task.getStartTime());
+        }
         try {
             if (!tasks.isEmpty()) {
-                for (Task taskInMap : tasks.values()) {
-                    if (!(taskInMap.getTaskType().equals(TaskType.EPIC) || task.getTaskType().equals(TaskType.EPIC))) {
-                        task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
+                if (taskType.equals(TaskType.TASK) || taskType.equals(TaskType.EPIC)) {
 
-                        if (checkTimeCrossing(task.getStartTime(), task.getEndTime())) {
-                            return;
+                    if (!checkTimeCrossing(startTime, endTime)) {
+                        tasks.put(task.getId(), task);
+                        System.out.println("Задача: " + task.getName() + ", успешно добавлена");
+                    } else {
+                        System.out.println("Пожалуйста, для задачи: " + task.getName()
+                                + ", выберете другое стартовое время.");
+                        return;
+                    }
+                } else {
+
+                    if (!checkTimeCrossing(startTime, endTime)) {
+                        tasks.put(task.getId(), task);
+
+                        Epic epic = (Epic) tasks.get(task.getEpicId());
+                        epic.setSubtasks(task.getId());
+
+                        List<UUID> subtasksUuids = tasks.get(task.getEpicId()).getSubtasks();
+                        if (subtasksUuids.size() == 1) {
+                            epic.setStartTime(startTime);
+                            epic.setEndTime(endTime);
                         }
+                        for (UUID subtasksUuid : subtasksUuids) {
+                            if(tasks.get(subtasksUuid).getStartTime().isAfter(startTime)) {
+                                epic.setStartTime(startTime); // назначение времени если новая подзадача по стартовому времени впереди всех остальных подзадач
+                            }
+                            if(tasks.get(subtasksUuid).getEndTime().isBefore(endTime)) {
+                                epic.setEndTime(endTime); // последнее время последней по времени подзадачи
+                            }
+                        }
+                        System.out.println("Подзадача: " + task.getName() + ", успешно добавлена");
+
+                        epic.setDuration(epic.getDuration() + task.getDuration()); //сумма продолжительности подзадач
+
+                        updateTask(epic);
+                    } else {
+                        System.out.println("Пожалуйста, для задачи: " + task.getName()
+                                + ", выберете другое стартовое время.");
                     }
                 }
-            }
-
-            switch (task.getTaskType()) {
-                case TASK:
-                    tasks.put(task.getId(), task);
-                    System.out.println("Задача: " + task.getName() + ", успешно добавлена");
-                    break;
-                case EPIC:
-                    tasks.put(task.getId(), task);
-                    System.out.println("Эпик: " + task.getName() + ", успешно добавлен");
-                    break;
-                case SUBTASK:
-                    tasks.put(task.getId(), task);
-                    System.out.println("Подзадача: " + task.getName() + ", успешно добавлена");
-
-                    Epic epic = (Epic) tasks.get(task.getEpicId());
-                    epic.setSubtasks(task.getId());
-                    if (epic.getStartTime() == null) {
-                        epic.setStartTime(task.getStartTime());
-                    }
-                    epic.setDuration(epic.getDuration() + task.getDuration());
-                    epic.setEndTime(epic.getStartTime().plusMinutes(epic.getDuration()));
-
-                    updateTask(epic);
+            } else {
+                tasks.put(task.getId(), task);
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -63,21 +85,21 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private boolean checkTimeCrossing(LocalDateTime startTime, LocalDateTime endTime) {
+//        List<Task> tasks = new ArrayList<>(getTasks().values());
+//        tasks.remove()
 
         for (Task taskInMap : tasks.values()) {
             LocalDateTime taskStartTime = taskInMap.getStartTime();
             LocalDateTime taskEndTime = taskInMap.getEndTime();
 
-            if (taskStartTime.isEqual(startTime)   // чтобы не городить вывел на равенство отдельно
+            if (taskStartTime.isEqual(startTime)
                     || taskEndTime.isEqual(endTime)) {
-                System.out.println("Пожалуйста выберете другое стартовое время");
                 return true;
             }
             if ((taskStartTime.isBefore(startTime)
                     && taskEndTime.isAfter(startTime))
                     || (taskStartTime.isBefore(endTime)
                     && taskEndTime.isAfter(endTime))) {
-                System.out.println("Пожалуйста выберете другое стартовое время");
                 return true;
             }
         }
@@ -234,6 +256,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void prioritizeTasks() {
         if (tasks.size() > 1) {
+            for (Task prioritizedTask : prioritizedTasks) {
+                if (prioritizedTask.getTaskType().equals(TaskType.EPIC)) {
+                    prioritizedTasks.remove(prioritizedTask); // епики не нужны так как составны
+                }
+            }
             prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
             prioritizedTasks.addAll(Stream.of(tasks.values())
                     .flatMap(Collection::stream)
@@ -290,12 +317,3 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("Обновление статуса эпика прошло успешно");
     }
 }
-
-
-
-
-
-
-
-
-

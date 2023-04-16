@@ -60,7 +60,6 @@ public class Epic extends Task {
         this.subtasks = subtasks;
     }
 
-
     @Override
     public List<UUID> getSubtasks() {
         return subtasks;
