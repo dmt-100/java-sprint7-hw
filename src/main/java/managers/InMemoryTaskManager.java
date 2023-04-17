@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class InMemoryTaskManager implements TaskManager {
     private final Map<UUID, Task> tasks = new HashMap<>();
     private Set<Task> prioritizedTasks = new TreeSet<>();
+    private List<Task> prioritizedTasks2 = new ArrayList<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
@@ -27,79 +27,81 @@ public class InMemoryTaskManager implements TaskManager {
 
         TaskType taskType = task.getTaskType();
 
-        if (!taskType.equals(TaskType.EPIC)) {
-            task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
-
-        } else {
-            task.setEndTime(task.getStartTime());
-        }
+//        if (!taskType.equals(TaskType.EPIC)) {
+//            task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
+//
+//        } else {
+//            task.setEndTime(task.getStartTime()); //дефолтное для эпика, при добавлении подзадач конечное время изменяется
+//        }
         try {
             if (!tasks.isEmpty()) {
                 if (taskType.equals(TaskType.TASK) || taskType.equals(TaskType.EPIC)) {
 
-                    if (!checkTimeCrossing(startTime, endTime)) {
+                    if (!checkTimeCrossing(startTime, endTime, task.getName())) {
                         tasks.put(task.getId(), task);
                         System.out.println("Задача: " + task.getName() + ", успешно добавлена");
-                    } else {
-                        System.out.println("Пожалуйста, для задачи: " + task.getName()
-                                + ", выберете другое стартовое время.");
-                        return;
                     }
                 } else {
 
-                    if (!checkTimeCrossing(startTime, endTime)) {
+                    if (!checkTimeCrossing(startTime, endTime, task.getName())) {
                         tasks.put(task.getId(), task);
-
-                        Epic epic = (Epic) tasks.get(task.getEpicId());
-                        epic.setSubtasks(task.getId());
-
-                        List<UUID> subtasksUuids = tasks.get(task.getEpicId()).getSubtasks();
-                        if (subtasksUuids.size() == 1) {
-                            epic.setStartTime(startTime);
-                            epic.setEndTime(endTime);
-                        }
-                        for (UUID subtasksUuid : subtasksUuids) {
-                            if(tasks.get(subtasksUuid).getStartTime().isAfter(startTime)) {
-                                epic.setStartTime(startTime); // назначение времени если новая подзадача по стартовому времени впереди всех остальных подзадач
-                            }
-                            if(tasks.get(subtasksUuid).getEndTime().isBefore(endTime)) {
-                                epic.setEndTime(endTime); // последнее время последней по времени подзадачи
-                            }
-                        }
                         System.out.println("Подзадача: " + task.getName() + ", успешно добавлена");
 
+                        Epic epic = (Epic) tasks.get(task.getEpicId());
+
+                        List<UUID> subtasksUuids = tasks.get(task.getEpicId()).getSubtasks();
+                        if (subtasksUuids.size() == 0) {
+                            epic.setStartTime(startTime);
+                            epic.setEndTime(endTime);
+
+                        } else {
+                            for (UUID subtasksUuid : subtasksUuids) {
+                                if (tasks.get(subtasksUuid).getStartTime().isAfter(startTime)) {
+                                    epic.setStartTime(startTime); // назначение времени если новая подзадача по стартовому времени впереди всех остальных подзадач
+                                }
+                                if (tasks.get(subtasksUuid).getEndTime().isBefore(endTime)) {
+                                    epic.setEndTime(endTime); // последнее время последней по времени подзадачи
+                                }
+                            }
+                        }
+                        epic.setSubtasks(task.getId());
                         epic.setDuration(epic.getDuration() + task.getDuration()); //сумма продолжительности подзадач
 
                         updateTask(epic);
                     } else {
-                        System.out.println("Пожалуйста, для задачи: " + task.getName()
-                                + ", выберете другое стартовое время.");
+                        return;
                     }
                 }
             } else {
                 tasks.put(task.getId(), task);
+                System.out.println("Задача: " + task.getName() + ", успешно добавлена");
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
     }
 
-    private boolean checkTimeCrossing(LocalDateTime startTime, LocalDateTime endTime) {
-//        List<Task> tasks = new ArrayList<>(getTasks().values());
-//        tasks.remove()
+    private boolean checkTimeCrossing(LocalDateTime startTime, LocalDateTime endTime, String name) {
 
         for (Task taskInMap : tasks.values()) {
             LocalDateTime taskStartTime = taskInMap.getStartTime();
             LocalDateTime taskEndTime = taskInMap.getEndTime();
 
-            if (taskStartTime.isEqual(startTime)
-                    || taskEndTime.isEqual(endTime)) {
+            if (taskStartTime.isEqual(startTime)) {
+                System.out.println("Для задачи: " + name + ", нужно  другое стартовое время.");
                 return true;
             }
-            if ((taskStartTime.isBefore(startTime)
-                    && taskEndTime.isAfter(startTime))
-                    || (taskStartTime.isBefore(endTime)
-                    && taskEndTime.isAfter(endTime))) {
+            if (taskEndTime.isEqual(endTime)) {
+                System.out.println("Для задачи: " + name + ", нужно  другое конечное время.");
+                return true;
+            }
+
+            if ((taskStartTime.isBefore(startTime) && taskEndTime.isAfter(startTime))) {
+                System.out.println("Для задачи: " + name + ", нужно  другое стартовое время.");
+                return true;
+            }
+            if (taskStartTime.isBefore(endTime) && taskEndTime.isAfter(endTime)) {
+                System.out.println("Для задачи: " + name + ", нужно  другое конечное время.");
                 return true;
             }
         }
@@ -256,15 +258,14 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void prioritizeTasks() {
         if (tasks.size() > 1) {
+            Comparator<Task> byStartTime = Comparator.comparing(Task::getStartTime);
+            prioritizedTasks = getTasks().values().stream()
+                    .sorted(byStartTime)
+                    .filter(task -> !task.getTaskType().equals(TaskType.EPIC))
+                    .collect(Collectors.toSet());
             for (Task prioritizedTask : prioritizedTasks) {
-                if (prioritizedTask.getTaskType().equals(TaskType.EPIC)) {
-                    prioritizedTasks.remove(prioritizedTask); // епики не нужны так как составны
-                }
+                System.out.println(prioritizedTask);
             }
-            prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
-            prioritizedTasks.addAll(Stream.of(tasks.values())
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
         } else {
             System.out.println("Нужно ещё больше задач");
         }

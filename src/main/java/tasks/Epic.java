@@ -26,7 +26,7 @@ public class Epic extends Task {
             List<UUID> subtasks
     ) {
         super(taskType, name, description, status, startTime, duration);
-        endTime = startTime.plusMinutes(duration);
+        endTime = startTime;
         this.subtasks = subtasks;
     }
 

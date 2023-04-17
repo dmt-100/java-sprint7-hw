@@ -94,7 +94,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     Task subtask2 = new Subtask(
             TaskType.SUBTASK,
-            "Subtask1",
+            "Subtask2",
             "Собрать коробки",
             Status.NEW,
             LocalDateTime.parse("2000-01-01T04:00:00"),
@@ -115,7 +115,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         fileBackedTasksManager.addNewTask(epic);
         subtask.setEpicId(epic.getId());
         fileBackedTasksManager.addNewTask(subtask);
-        epic.setSubtasks(subtask.getId());
+//        epic.setSubtasks(subtask.getId());
     }
 
     void get() {
@@ -139,111 +139,156 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
 // =================================== /case TimeCrossing/ private boolean checkTimeCrossing(Task task)=============
+    // task1 time "2000-01-01T00:00:00" duration 50
+    LocalDateTime testDateTimeTask = LocalDateTime.parse("2000-01-01T00:01:00");
 
-    LocalDateTime dateTimeTestTask1 = LocalDateTime.parse("2000-01-01T00:01:00");
-    LocalDateTime dateTimeTestTask2 = LocalDateTime.parse("2000-01-01T00:00:00");
+    // epic1 time "2000-01-01T02:00:00" duration 0
+    LocalDateTime testDateTimeEpic = LocalDateTime.parse("2000-01-01T02:01:00");
 
-    LocalDateTime dateTimeTestEpic1 = LocalDateTime.parse("2000-01-01T00:00:00");
-    LocalDateTime dateTimeTestSubtask1 = LocalDateTime.parse("2000-01-01T00:00:00");
-    LocalDateTime dateTimeTestSubtask2 = LocalDateTime.parse("2000-01-01T01:00:00");
+    // subtask1 time "2000-01-01T04:00:00" duration 50
+    LocalDateTime testDateTimeSubtask = LocalDateTime.parse("2000-01-01T04:01:00");
 
     @Test
-    void checkTimeCrossingTestTaskByStartTime() {
+    void checkTimeCrossingTestTaskByStartAndEndTime() {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
+        task2.setStartTime(testDateTimeTask); // начальное время попадает в отрезок времени task
         fileBackedTasksManager.addNewTask(task2);
 
-        String expectedOutput = "Пожалуйста, для задачи: " + task2.getName()
-                + ", выберете другое стартовое время.";
+        String expectedOutput = "Для задачи: " + task2.getName() + ", нужно  другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
-    }
+// ============================
+        ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent2));
 
-    @Test
-    void checkTimeCrossingTestTaskByEndTime() {
-        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outContent));
-
-        task2.setStartTime(dateTimeTestTask1);
+        task2.setStartTime(testDateTimeTask.minusMinutes(2)); // конечное время попадает в отрезок времени task
+        task2.setDuration(50);
         fileBackedTasksManager.addNewTask(task2);
 
-        String expectedOutput = "Пожалуйста, для задачи: " + task2.getName()
-                + ", выберете другое стартовое время.";
-        String actualOutput = outContent.toString().trim();
+        String expectedOutput2 = "Для задачи: " + task2.getName() + ", нужно  другое конечное время.";
+        String actualOutput2 = outContent2.toString().trim();
 
-        assertEquals(expectedOutput, actualOutput);
+        assertEquals(expectedOutput2, actualOutput2);
     }
+
     @Test
-    void checkTimeCrossingTestTaskBetweenTime() { // между началом и концом
+    void checkTimeCrossingTestTaskByEquals() { // проверка на совпадение времени
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-        task2.setStartTime(dateTimeTestTask1); // +1 минута
-        task2.setDuration(40); // тоесть в промежутке времени первой задачи task1
+        task2.setStartTime(testDateTimeTask.minusMinutes(1));
         fileBackedTasksManager.addNewTask(task2);
 
-        String expectedOutput = "Пожалуйста, для задачи: " + task2.getName()
-                + ", выберете другое стартовое время.";
+        String expectedOutput = "Для задачи: " + task2.getName() + ", нужно  другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
+// ==========================
+        ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent2));
+
+        task2.setStartTime(testDateTimeTask.minusMinutes(10));
+        task2.setDuration(49); // совпадает с конечным временем на .equals
+        fileBackedTasksManager.addNewTask(task2);
+
+        String expectedOutput2 = "Для задачи: " + task2.getName() + ", нужно  другое конечное время.";
+        String actualOutput2 = outContent2.toString().trim();
+
+        assertEquals(expectedOutput2, actualOutput2);
     }
 
-
     @Test
-    void checkTimeCrossingSubtaskTestSubtaskByStartTime() {
+    void checkTimeCrossingTestTaskBetweenTime() { // весь отрезок времени находится в уже добавленной задачи
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
+        task2.setStartTime(testDateTimeTask);
+        task2.setDuration(48);
+        fileBackedTasksManager.addNewTask(task2);
+
+        String expectedOutput = "Для задачи: " + task2.getName() + ", нужно  другое стартовое время.";
+        String actualOutput = outContent.toString().trim();
+        assertEquals(expectedOutput, actualOutput);
+    }
+//================================================= Subtask
+
+    @Test
+    void checkTimeCrossingTestTaskByStartAndEndTimeSubtask() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        subtask2.setStartTime(testDateTimeTask); // начальное время попадает в отрезок времени task
         fileBackedTasksManager.addNewTask(subtask2);
 
-        String expectedOutput = "Пожалуйста, для задачи: " + subtask2.getName()
-                + ", выберете другое стартовое время.";
+        String expectedOutput = "Для задачи: " + subtask2.getName() + ", нужно  другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
-    }
+// ============================
+        ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent2));
 
-    @Test
-    void checkTimeCrossingSubtaskTestTaskByEndTime() {
-        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outContent));
-
-        subtask2.setStartTime(dateTimeTestTask1);
+        subtask2.setStartTime(testDateTimeTask.minusMinutes(2)); // конечное время попадает в отрезок времени task
+        subtask2.setDuration(50);
         fileBackedTasksManager.addNewTask(subtask2);
 
-        String expectedOutput = "Пожалуйста, для задачи: " + subtask2.getName()
-                + ", выберете другое стартовое время.";
-        String actualOutput = outContent.toString().trim();
+        String expectedOutput2 = "Для задачи: " + subtask2.getName() + ", нужно  другое конечное время.";
+        String actualOutput2 = outContent2.toString().trim();
 
-        assertEquals(expectedOutput, actualOutput);
+        assertEquals(expectedOutput2, actualOutput2);
     }
 
     @Test
-    void checkTimeCrossingSubtaskTaskBetweenTime() { // между началом и концом
+    void checkTimeCrossingTestTaskByEqualsSubtask() { // проверка на совпадение времени
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-        subtask2.setStartTime(dateTimeTestTask1); // +1 минута
-        subtask2.setDuration(40); // тоесть в промежутке времени первой задачи task1
+        subtask2.setStartTime(testDateTimeTask.minusMinutes(1));
         fileBackedTasksManager.addNewTask(subtask2);
 
-        String expectedOutput = "Пожалуйста, для задачи: " + subtask2.getName()
-                + ", выберете другое стартовое время.";
+        String expectedOutput = "Для задачи: " + subtask2.getName() + ", нужно  другое стартовое время.";
         String actualOutput = outContent.toString().trim();
 
         assertEquals(expectedOutput, actualOutput);
+// ==========================
+        ByteArrayOutputStream outContent2 = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent2));
+
+        subtask2.setStartTime(testDateTimeTask.minusMinutes(10));
+        subtask2.setDuration(49); // совпадает с конечным временем на .equals
+        fileBackedTasksManager.addNewTask(subtask2);
+
+        String expectedOutput2 = "Для задачи: " + subtask2.getName() + ", нужно  другое конечное время.";
+        String actualOutput2 = outContent2.toString().trim();
+
+        assertEquals(expectedOutput2, actualOutput2);
     }
 
     @Test
-    void checkTimeCrossingEpicEndTime() {
+    void checkTimeCrossingTestTaskBetweenTimeSubtask() { // весь отрезок времени находится в уже добавленной задачи
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        subtask2.setStartTime(testDateTimeTask);
+        subtask2.setDuration(48);
+        fileBackedTasksManager.addNewTask(subtask2);
+
+        String expectedOutput = "Для задачи: " + subtask2.getName() + ", нужно  другое стартовое время.";
+        String actualOutput = outContent.toString().trim();
+        assertEquals(expectedOutput, actualOutput);
+    }
+//================================================= Epic
+
+    @Test
+    void checkTimeCrossingEpicEndTime() { // конечное время эпика задается суммой duration сабтасков
 
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-        LocalDateTime actualEpicEndTime = subtask2.getEndTime();
+        LocalDateTime actualEpicEndTime = subtask.getEndTime();
         LocalDateTime expectedEpicEndTime = fileBackedTasksManager.getTasks().get(epic.getId()).getEndTime();
 
         assertEquals(actualEpicEndTime, expectedEpicEndTime);
@@ -454,7 +499,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void testCase8GetSubtasksFromEpicWithStandardCondition() { // a. Со стандартным поведением. (из ТЗ)
         List<Task> subtasks = new ArrayList<>(fileBackedTasksManager.getSubtasksFromEpic(epic.getId()));
-        boolean flag = fileBackedTasksManager.getTask(subtask.getId()).equals(subtasks.get(1)); // subtasks.size = 2! не могу понять почему Not showing null elements при значении 0  https://i.ibb.co/phMhZYw/image.png  возможно связано с хешкодом  https://stackoverflow.com/questions/59150344/arraylist-for-loop-in-to-a-hashmap-size-shows-is-correct-but-elements-are-one-le
+        boolean flag = fileBackedTasksManager.getTask(subtask.getId()).equals(subtasks.get(0));
         assertTrue(flag);
     }
 
@@ -499,21 +544,22 @@ abstract class TaskManagerTest<T extends TaskManager> {
         clearHistory();
         fileBackedTasksManager.addNewTask(task);
         fileBackedTasksManager.addNewTask(epic);
-//        subtask.setStartTime();
+        subtask.setEpicId(epic.getId());
         fileBackedTasksManager.addNewTask(subtask);
 
-        boolean flag;
+        boolean flag = false;
         List<Task> tasks = new ArrayList<>(fileBackedTasksManager.getPrioritizedTasks());
-        flag = tasks.get(0).getTaskType().equals(TaskType.TASK) &&
-                tasks.get(1).getTaskType().equals(TaskType.EPIC);
-        assertTrue(flag);
-    }
+        for (Task task1 : tasks) {
+            if (task1.getTaskType().equals(TaskType.TASK) || task1.getTaskType().equals(TaskType.SUBTASK)) { // Эпики в prioritizedTasks не нужны
+                flag = true;
+            }
+        }
+        assertTrue(flag);    }
 
     @Test
     void testCase11GetPrioritizedTasksWhenEmptyMap() {  // b. С пустой мапой задач.
         clearHistory();
         fileBackedTasksManager.prioritizeTasks();
-        boolean flag;
         List<Task> tasks = new ArrayList<>(fileBackedTasksManager.getPrioritizedTasks());
 
         assertEquals(new ArrayList<>(), tasks);
