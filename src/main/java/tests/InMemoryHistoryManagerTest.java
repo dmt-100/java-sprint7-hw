@@ -329,6 +329,4 @@ Epic{id=92cde998-d9ca-497e-b604-058fe8fef042, taskType=EPIC, name='Переез�
         inMemoryHistoryManager.remove(task1.getId());
         assertEquals("Задачи с таким id в истории нет", inMemoryHistoryManager.remove(task1.getId()));
     }
-// Уже давно по coverage 100% продолжать тесты не имеет смысла так как видимо дублируются выше методами на удаление
-//    inMemoryHistoryManager.remove(subtask1.getId());
 }

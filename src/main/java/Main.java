@@ -48,6 +48,7 @@ public class Main {
 
 
         Epic epic1 = new Epic(
+                epicUuid,
                 TaskType.EPIC,
                 "ПереездЭпик",
                 "Переезд",
@@ -67,25 +68,25 @@ public class Main {
                 subtasksList
         );
 
-        Subtask subtask1 = new Subtask(
-                TaskType.SUBTASK,
-                "Подзадача1",
-                "Собрать коробки",
-                Status.NEW,
-                dateTimeTestSubtask1,
-                50,
-                epicUuid
-        );
-
-        Subtask subtask2 = new Subtask(
-                TaskType.SUBTASK,
-                "Подзадача2",
-                "Упаковать кошку",
-                Status.NEW,
-                dateTimeTestSubtask2,
-                15,
-                epicUuid
-        );
+//        Subtask subtask1 = new Subtask(
+//                TaskType.SUBTASK,
+//                "Подзадача1",
+//                "Собрать коробки",
+//                Status.NEW,
+//                dateTimeTestSubtask1,
+//                50,
+//                epicUuid
+//        );
+//
+//        Subtask subtask2 = new Subtask(
+//                TaskType.SUBTASK,
+//                "Подзадача2",
+//                "Упаковать кошку",
+//                Status.NEW,
+//                dateTimeTestSubtask2,
+//                15,
+//                epicUuid
+//        );
 
 
         boolean menu = true;
@@ -136,9 +137,28 @@ public class Main {
                             fileBackedTasksManager.addNewTask(epic1);
                             break;
                         case 3:
-                            System.out.println("К какому эпику будет относиться ваша задача?");
-                            System.out.println("Введите id эпика:");
-                            UUID epicId = UUID.fromString(scanner.next());
+//                            System.out.println("К какому эпику будет относиться ваша задача?");
+//                            System.out.println("Введите id эпика:");
+//                            UUID epicId = UUID.fromString(scanner.next());
+                            Subtask subtask1 = new Subtask(
+                                    TaskType.SUBTASK,
+                                    "Подзадача1",
+                                    "Собрать коробки",
+                                    Status.NEW,
+                                    dateTimeTestSubtask1,
+                                    50,
+                                    fileBackedTasksManager.getTask(epic1.getId()).getId()
+                            );
+
+                            Subtask subtask2 = new Subtask(
+                                    TaskType.SUBTASK,
+                                    "Подзадача2",
+                                    "Упаковать кошку",
+                                    Status.NEW,
+                                    dateTimeTestSubtask2,
+                                    15,
+                                    fileBackedTasksManager.getTask(epic1.getId()).getId()
+                            );
                             fileBackedTasksManager.addNewTask(subtask1);
                             fileBackedTasksManager.addNewTask(subtask2);
                             break;

@@ -11,11 +11,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class InMemoryTaskManager implements TaskManager {
     private final Map<UUID, Task> tasks = new HashMap<>();
     private Set<Task> prioritizedTasks = new TreeSet<>();
-    private List<Task> prioritizedTasks2 = new ArrayList<>();
+//    private List<Task> prioritizedTasks2 = new ArrayList<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
@@ -259,13 +260,21 @@ public class InMemoryTaskManager implements TaskManager {
     public void prioritizeTasks() {
         if (tasks.size() > 1) {
             Comparator<Task> byStartTime = Comparator.comparing(Task::getStartTime);
-            prioritizedTasks = getTasks().values().stream()
+
+            prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+            prioritizedTasks.addAll(Stream.of(tasks.values())
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+
+            prioritizedTasks = prioritizedTasks.stream()
+                    .filter(t -> !t.getTaskType().equals(TaskType.EPIC))
                     .sorted(byStartTime)
-                    .filter(task -> !task.getTaskType().equals(TaskType.EPIC))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
             for (Task prioritizedTask : prioritizedTasks) {
                 System.out.println(prioritizedTask);
             }
+
         } else {
             System.out.println("Нужно ещё больше задач");
         }

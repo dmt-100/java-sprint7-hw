@@ -559,9 +559,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void testCase11GetPrioritizedTasksWhenEmptyMap() {  // b. С пустой мапой задач.
         clearHistory();
-        fileBackedTasksManager.prioritizeTasks();
-        List<Task> tasks = new ArrayList<>(fileBackedTasksManager.getPrioritizedTasks());
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
 
-        assertEquals(new ArrayList<>(), tasks);
+        fileBackedTasksManager.prioritizeTasks();
+
+        String expectedOutput = "Нужно ещё больше задач";
+        String actualOutput = outContent.toString().trim();
+
+        assertEquals(expectedOutput, actualOutput);
+
     }
 }
