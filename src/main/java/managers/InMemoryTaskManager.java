@@ -11,11 +11,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class InMemoryTaskManager implements TaskManager {
     private final Map<UUID, Task> tasks = new HashMap<>();
-    private Set<Task> prioritizedTasks = new TreeSet<>();
+    private List<Task> prioritizedTasks = new ArrayList<>();
 //    private List<Task> prioritizedTasks2 = new ArrayList<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
@@ -28,23 +27,17 @@ public class InMemoryTaskManager implements TaskManager {
 
         TaskType taskType = task.getTaskType();
 
-//        if (!taskType.equals(TaskType.EPIC)) {
-//            task.setEndTime(task.getStartTime().plusMinutes(task.getDuration()));
-//
-//        } else {
-//            task.setEndTime(task.getStartTime()); //дефолтное для эпика, при добавлении подзадач конечное время изменяется
-//        }
         try {
             if (!tasks.isEmpty()) {
                 if (taskType.equals(TaskType.TASK) || taskType.equals(TaskType.EPIC)) {
 
-                    if (!checkTimeCrossing(startTime, endTime, task.getName())) {
+                    if (checkTimeCrossing(startTime, endTime, task.getName())) {
                         tasks.put(task.getId(), task);
                         System.out.println("Задача: " + task.getName() + ", успешно добавлена");
                     }
                 } else {
 
-                    if (!checkTimeCrossing(startTime, endTime, task.getName())) {
+                    if (checkTimeCrossing(startTime, endTime, task.getName())) {
                         tasks.put(task.getId(), task);
                         System.out.println("Подзадача: " + task.getName() + ", успешно добавлена");
 
@@ -69,8 +62,6 @@ public class InMemoryTaskManager implements TaskManager {
                         epic.setDuration(epic.getDuration() + task.getDuration()); //сумма продолжительности подзадач
 
                         updateTask(epic);
-                    } else {
-                        return;
                     }
                 }
             } else {
@@ -90,23 +81,23 @@ public class InMemoryTaskManager implements TaskManager {
 
             if (taskStartTime.isEqual(startTime)) {
                 System.out.println("Для задачи: " + name + ", нужно  другое стартовое время.");
-                return true;
+                return false;
             }
             if (taskEndTime.isEqual(endTime)) {
                 System.out.println("Для задачи: " + name + ", нужно  другое конечное время.");
-                return true;
+                return false;
             }
 
             if ((taskStartTime.isBefore(startTime) && taskEndTime.isAfter(startTime))) {
                 System.out.println("Для задачи: " + name + ", нужно  другое стартовое время.");
-                return true;
+                return false;
             }
             if (taskStartTime.isBefore(endTime) && taskEndTime.isAfter(endTime)) {
                 System.out.println("Для задачи: " + name + ", нужно  другое конечное время.");
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     // case 2: Получение списка всех задач.-------------------------------------
@@ -114,9 +105,8 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Task> getAllTasksByTaskType(TaskType taskType) {
         List<Task> list;
         if (!tasks.isEmpty()) {
-            list = tasks.entrySet().stream().filter(t -> t.getValue()
+            list = tasks.values().stream().filter(task -> task
                             .getTaskType().equals(taskType))
-                    .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
 
         } else {
@@ -129,8 +119,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeTasksByTasktype(TaskType taskType) {
         if (taskType.equals(TaskType.SUBTASK)) {
-            tasks.values().stream().forEach(t -> t.getSubtasks().clear());
-            tasks.values().stream().forEach(t -> historyManager.remove(t.getId()));
+            tasks.values().forEach(t -> t.getSubtasks().clear());
+            tasks.values().forEach(t -> historyManager.remove(t.getId()));
 
             LocalDateTime defaultTime = LocalDateTime.parse("2000-01-01 00:00:00",
                     DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.US));
@@ -255,21 +245,18 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getTasksInHistory();
     }
 
+
+
     // case 11: сортировка задач по стартовому времени
     @Override
     public void prioritizeTasks() {
+
         if (tasks.size() > 1) {
-            Comparator<Task> byStartTime = Comparator.comparing(Task::getStartTime);
 
-            prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
-            prioritizedTasks.addAll(Stream.of(tasks.values())
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-
-            prioritizedTasks = prioritizedTasks.stream()
-                    .filter(t -> !t.getTaskType().equals(TaskType.EPIC))
-                    .sorted(byStartTime)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            prioritizedTasks = tasks.values().stream()
+                    .filter(t -> (!t.getTaskType().equals(TaskType.EPIC)))
+                    .sorted(Comparator.comparing(Task::getStartTime))
+                    .collect(Collectors.toCollection(ArrayList::new));
 
             for (Task prioritizedTask : prioritizedTasks) {
                 System.out.println(prioritizedTask);
@@ -282,7 +269,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // ==========================   Getters       ==========================
     @Override
-    public Set<Task> getPrioritizedTasks() {
+    public List<Task> getPrioritizedTasks() {
         prioritizeTasks();
         return prioritizedTasks;
     }

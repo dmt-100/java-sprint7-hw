@@ -6,7 +6,6 @@ import main.java.tasks.Task;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 public interface TaskManager {
@@ -34,6 +33,6 @@ public interface TaskManager {
 
     void prioritizeTasks();
 
-    Set<Task> getPrioritizedTasks();
+    List<Task> getPrioritizedTasks();
 
 }
